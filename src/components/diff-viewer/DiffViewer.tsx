@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, Fragment } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo, memo, Fragment } from "react";
 import {
   PlusIcon,
   FilePlusIcon,
@@ -70,6 +70,20 @@ function getStatusIcon(status: DiffFile["status"]) {
 interface DiffSegment {
   text: string;
   type: "same" | "changed";
+}
+
+interface ThreadLookup {
+  exact: Map<string, Thread[]>;
+  anySide: Map<string, Thread[]>;
+}
+
+interface PreparedSplitLine {
+  key: string;
+  left: DiffLine | null;
+  right: DiffLine | null;
+  leftNum: number | null;
+  rightNum: number | null;
+  wordDiff: { oldSegments: DiffSegment[]; newSegments: DiffSegment[] } | null;
 }
 
 function tokenize(str: string): string[] {
@@ -165,6 +179,77 @@ function SegmentedContent({
 
 const WORD_HIGHLIGHT_DEL = "bg-diff-del-bg/70 rounded-[2px] px-[1px] -mx-[1px]";
 const WORD_HIGHLIGHT_ADD = "bg-diff-add-bg/70 rounded-[2px] px-[1px] -mx-[1px]";
+
+function getThreadLookupKey(filePath: string, lineNumber: number, side: "left" | "right" | "any") {
+  return `${filePath}:${side}:${lineNumber}`;
+}
+
+function buildThreadLookup(threads: Thread[]): ThreadLookup {
+  const exact = new Map<string, Thread[]>();
+  const anySide = new Map<string, Thread[]>();
+
+  for (const thread of threads) {
+    const exactKey = getThreadLookupKey(thread.filePath, thread.endLine, thread.side);
+    const exactThreads = exact.get(exactKey);
+    if (exactThreads) {
+      exactThreads.push(thread);
+    } else {
+      exact.set(exactKey, [thread]);
+    }
+
+    const anySideKey = getThreadLookupKey(thread.filePath, thread.endLine, "any");
+    const anySideThreads = anySide.get(anySideKey);
+    if (anySideThreads) {
+      anySideThreads.push(thread);
+    } else {
+      anySide.set(anySideKey, [thread]);
+    }
+  }
+
+  return { exact, anySide };
+}
+
+function getThreadsForLine(
+  lookup: ThreadLookup,
+  filePath: string,
+  lineNumber: number | null,
+  side: "left" | "right",
+): Thread[] {
+  if (lineNumber == null) return [];
+  return lookup.exact.get(getThreadLookupKey(filePath, lineNumber, side)) ?? [];
+}
+
+function getThreadsForUnifiedLine(
+  lookup: ThreadLookup,
+  filePath: string,
+  lineNumber: number | null,
+  lineType: DiffLine["type"],
+  side: "left" | "right",
+): Thread[] {
+  if (lineNumber == null) return [];
+  if (lineType === "context") {
+    return lookup.anySide.get(getThreadLookupKey(filePath, lineNumber, "any")) ?? [];
+  }
+  return getThreadsForLine(lookup, filePath, lineNumber, side);
+}
+
+function getThreadsForSplitLine(
+  lookup: ThreadLookup,
+  filePath: string,
+  leftNum: number | null,
+  rightNum: number | null,
+): Thread[] {
+  const mergedThreads = [
+    ...getThreadsForLine(lookup, filePath, leftNum, "left"),
+    ...getThreadsForLine(lookup, filePath, rightNum, "right"),
+  ];
+
+  if (mergedThreads.length <= 1) return mergedThreads;
+
+  return mergedThreads
+    .slice()
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
+}
 
 // ============================================================
 // Line range selection hook (drag-to-select like GitHub)
@@ -262,19 +347,6 @@ function isLineInRange(
   return lineNum >= range.startLine && lineNum <= range.endLine;
 }
 
-/** Check if a thread covers a given line (endLine match = render after that line) */
-function threadCoversLine(
-  thread: Thread,
-  filePath: string,
-  lineNum: number | null,
-  side: "left" | "right",
-): boolean {
-  if (lineNum == null) return false;
-  if (thread.filePath !== filePath) return false;
-  if (thread.side !== side) return false;
-  return thread.endLine === lineNum;
-}
-
 // ============================================================
 // DiffViewer
 // ============================================================
@@ -295,6 +367,7 @@ export function DiffViewer({
   const [collapsedFiles, setCollapsedFiles] = useState<Set<string>>(new Set());
   // Track whether the comment form is open (separate from selection)
   const [commentingRange, setCommentingRange] = useState<LineRange | null>(null);
+  const threadLookup = useMemo(() => buildThreadLookup(threads), [threads]);
   const {
     selecting,
     selectionRange,
@@ -304,40 +377,46 @@ export function DiffViewer({
     setSelectionRange,
   } = useLineRangeSelection(setCommentingRange);
 
-  function toggleFile(filePath: string) {
+  const toggleFile = useCallback((filePath: string) => {
     setCollapsedFiles((prev) => {
       const next = new Set(prev);
       if (next.has(filePath)) next.delete(filePath);
       else next.add(filePath);
       return next;
     });
-  }
+  }, []);
 
-  function handleCancelComment() {
+  const handleCancelComment = useCallback(() => {
     setCommentingRange(null);
     clearSelection();
-  }
+  }, [clearSelection]);
 
-  function handleSubmitNewComment(body: string) {
-    if (!commentingRange) return;
-    onCreateThread(
-      commentingRange.filePath,
-      commentingRange.endLine, // lineNumber = endLine (where thread renders)
-      body,
-      commentingRange.side,
-      commentingRange.startLine,
-      commentingRange.endLine,
-    );
-    setCommentingRange(null);
-    clearSelection();
-  }
+  const handleSubmitNewComment = useCallback(
+    (body: string) => {
+      if (!commentingRange) return;
+      onCreateThread(
+        commentingRange.filePath,
+        commentingRange.endLine, // lineNumber = endLine (where thread renders)
+        body,
+        commentingRange.side,
+        commentingRange.startLine,
+        commentingRange.endLine,
+      );
+      setCommentingRange(null);
+      clearSelection();
+    },
+    [clearSelection, commentingRange, onCreateThread],
+  );
 
   // Single-click on gutter: select one line and immediately open comment form
-  function handleGutterClick(filePath: string, lineNumber: number, side: "left" | "right") {
-    const range: LineRange = { filePath, startLine: lineNumber, endLine: lineNumber, side };
-    setSelectionRange(range);
-    setCommentingRange(range);
-  }
+  const handleGutterClick = useCallback(
+    (filePath: string, lineNumber: number, side: "left" | "right") => {
+      const range: LineRange = { filePath, startLine: lineNumber, endLine: lineNumber, side };
+      setSelectionRange(range);
+      setCommentingRange(range);
+    },
+    [setSelectionRange],
+  );
 
   // Determine the active selection range (either dragging or committed for commenting)
   const activeRange = commentingRange || (selecting ? selectionRange : null);
@@ -346,125 +425,195 @@ export function DiffViewer({
     <div className={cn("flex flex-col", selecting && "select-none")}>
       {files.map((file) => {
         const filePath = file.newPath || file.oldPath;
-        const isCollapsed = collapsedFiles.has(filePath);
 
         return (
-          <div
+          <MemoizedDiffFileSection
             key={filePath}
-            ref={(el) => {
-              fileRefs.current.set(filePath, el);
-            }}
-            className="border-b border-border/30 last:border-b-0"
-          >
-            {/* File header */}
-            <div className="sticky top-0 z-20 flex items-center gap-2 w-full px-4 py-2.5 bg-muted/40 backdrop-blur-sm border-b border-border/30 hover:bg-muted/60 transition-colors">
-              <button
-                type="button"
-                className="flex items-center gap-2 flex-1 min-w-0 text-left"
-                onClick={() => toggleFile(filePath)}
-              >
-                {isCollapsed ? (
-                  <ChevronRightIcon className="size-3.5 text-muted-foreground shrink-0" />
-                ) : (
-                  <ChevronDownIcon className="size-3.5 text-muted-foreground shrink-0" />
-                )}
-                {getStatusIcon(file.status)}
-                <span className="font-mono text-xs font-medium truncate">{filePath}</span>
-
-                {file.status === "renamed" && file.oldPath !== file.newPath && (
-                  <span className="text-[10px] text-muted-foreground/60 font-mono truncate">
-                    (from {file.oldPath})
-                  </span>
-                )}
-
-                <span className="flex-1" />
-
-                <span className="flex items-center gap-2 text-[11px] shrink-0">
-                  {file.additions > 0 && (
-                    <span className="text-diff-add-fg font-mono">+{file.additions}</span>
-                  )}
-                  {file.deletions > 0 && (
-                    <span className="text-diff-del-fg font-mono">-{file.deletions}</span>
-                  )}
-                </span>
-              </button>
-
-              {onToggleViewed && (
-                <label className="flex items-center gap-1.5 shrink-0 text-[11px] cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={viewedFiles?.has(filePath) ?? false}
-                    onChange={() => onToggleViewed(filePath)}
-                    className="size-3.5 rounded border-border accent-emerald-500"
-                  />
-                  <span
-                    className={cn(
-                      "transition-colors",
-                      viewedFiles?.has(filePath) ? "text-emerald-400" : "text-muted-foreground/50",
-                    )}
-                  >
-                    Viewed
-                  </span>
-                </label>
-              )}
-            </div>
-
-            {/* File content */}
-            {!isCollapsed && file.isBinary && (
-              <div className="flex items-center gap-3 px-6 py-8 text-center justify-center">
-                <FileWarningIcon className="size-5 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground/60">
-                  Binary file — cannot display diff
-                </p>
-              </div>
-            )}
-            {!isCollapsed && !file.isBinary && (
-              <div className="overflow-x-auto">
-                {viewMode === "unified" ? (
-                  <UnifiedDiffView
-                    file={file}
-                    filePath={filePath}
-                    threads={threads}
-                    activeRange={activeRange}
-                    selecting={selecting}
-                    commentingRange={commentingRange}
-                    onGutterMouseDown={handleGutterMouseDown}
-                    onGutterMouseEnter={handleGutterMouseEnter}
-                    onGutterClick={handleGutterClick}
-                    onCancelComment={handleCancelComment}
-                    onSubmitNewComment={handleSubmitNewComment}
-                    onAddComment={onAddComment}
-                    onEditComment={onEditComment}
-                    onDeleteComment={onDeleteComment}
-                    onResolve={onResolve}
-                  />
-                ) : (
-                  <SplitDiffView
-                    file={file}
-                    filePath={filePath}
-                    threads={threads}
-                    activeRange={activeRange}
-                    selecting={selecting}
-                    commentingRange={commentingRange}
-                    onGutterMouseDown={handleGutterMouseDown}
-                    onGutterMouseEnter={handleGutterMouseEnter}
-                    onGutterClick={handleGutterClick}
-                    onCancelComment={handleCancelComment}
-                    onSubmitNewComment={handleSubmitNewComment}
-                    onAddComment={onAddComment}
-                    onEditComment={onEditComment}
-                    onDeleteComment={onDeleteComment}
-                    onResolve={onResolve}
-                  />
-                )}
-              </div>
-            )}
-          </div>
+            file={file}
+            filePath={filePath}
+            isCollapsed={collapsedFiles.has(filePath)}
+            isViewed={viewedFiles?.has(filePath) ?? false}
+            viewMode={viewMode}
+            threadLookup={threadLookup}
+            activeRange={activeRange?.filePath === filePath ? activeRange : null}
+            selecting={selecting}
+            commentingRange={commentingRange?.filePath === filePath ? commentingRange : null}
+            onToggleCollapse={toggleFile}
+            onGutterMouseDown={handleGutterMouseDown}
+            onGutterMouseEnter={handleGutterMouseEnter}
+            onGutterClick={handleGutterClick}
+            onCancelComment={handleCancelComment}
+            onSubmitNewComment={handleSubmitNewComment}
+            onAddComment={onAddComment}
+            onEditComment={onEditComment}
+            onDeleteComment={onDeleteComment}
+            onResolve={onResolve}
+            onToggleViewed={onToggleViewed}
+            fileRefs={fileRefs}
+          />
         );
       })}
     </div>
   );
 }
+
+interface DiffFileSectionProps {
+  file: DiffFile;
+  filePath: string;
+  isCollapsed: boolean;
+  isViewed: boolean;
+  viewMode: ViewMode;
+  threadLookup: ThreadLookup;
+  activeRange: LineRange | null;
+  selecting: boolean;
+  commentingRange: LineRange | null;
+  onToggleCollapse: (filePath: string) => void;
+  onGutterMouseDown: (
+    filePath: string,
+    lineNum: number,
+    side: "left" | "right",
+    e: React.MouseEvent,
+  ) => void;
+  onGutterMouseEnter: (filePath: string, lineNum: number, side: "left" | "right") => void;
+  onGutterClick: (filePath: string, lineNum: number, side: "left" | "right") => void;
+  onCancelComment: () => void;
+  onSubmitNewComment: (body: string) => void;
+  onAddComment: (threadId: string, body: string) => void;
+  onEditComment: (commentId: string, body: string) => void;
+  onDeleteComment: (commentId: string) => void;
+  onResolve: (threadId: string, resolved: boolean) => void;
+  onToggleViewed?: (filePath: string) => void;
+  fileRefs: React.MutableRefObject<Map<string, HTMLDivElement | null>>;
+}
+
+const MemoizedDiffFileSection = memo(function DiffFileSection({
+  file,
+  filePath,
+  isCollapsed,
+  isViewed,
+  viewMode,
+  threadLookup,
+  activeRange,
+  selecting,
+  commentingRange,
+  onToggleCollapse,
+  onGutterMouseDown,
+  onGutterMouseEnter,
+  onGutterClick,
+  onCancelComment,
+  onSubmitNewComment,
+  onAddComment,
+  onEditComment,
+  onDeleteComment,
+  onResolve,
+  onToggleViewed,
+  fileRefs,
+}: DiffFileSectionProps) {
+  return (
+    <div
+      ref={(el) => {
+        fileRefs.current.set(filePath, el);
+      }}
+      className="border-b border-border/30 last:border-b-0"
+    >
+      <div className="sticky top-0 z-20 flex items-center gap-2 w-full px-4 py-2.5 bg-muted/40 backdrop-blur-sm border-b border-border/30 hover:bg-muted/60 transition-colors">
+        <button
+          type="button"
+          className="flex items-center gap-2 flex-1 min-w-0 text-left"
+          onClick={() => onToggleCollapse(filePath)}
+        >
+          {isCollapsed ? (
+            <ChevronRightIcon className="size-3.5 text-muted-foreground shrink-0" />
+          ) : (
+            <ChevronDownIcon className="size-3.5 text-muted-foreground shrink-0" />
+          )}
+          {getStatusIcon(file.status)}
+          <span className="font-mono text-xs font-medium truncate">{filePath}</span>
+
+          {file.status === "renamed" && file.oldPath !== file.newPath && (
+            <span className="text-[10px] text-muted-foreground/60 font-mono truncate">
+              (from {file.oldPath})
+            </span>
+          )}
+
+          <span className="flex-1" />
+
+          <span className="flex items-center gap-2 text-[11px] shrink-0">
+            {file.additions > 0 && <span className="text-diff-add-fg font-mono">+{file.additions}</span>}
+            {file.deletions > 0 && <span className="text-diff-del-fg font-mono">-{file.deletions}</span>}
+          </span>
+        </button>
+
+        {onToggleViewed && (
+          <label className="flex items-center gap-1.5 shrink-0 text-[11px] cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={isViewed}
+              onChange={() => onToggleViewed(filePath)}
+              className="size-3.5 rounded border-border accent-emerald-500"
+            />
+            <span
+              className={cn(
+                "transition-colors",
+                isViewed ? "text-emerald-400" : "text-muted-foreground/50",
+              )}
+            >
+              Viewed
+            </span>
+          </label>
+        )}
+      </div>
+
+      {!isCollapsed && file.isBinary && (
+        <div className="flex items-center gap-3 px-6 py-8 text-center justify-center">
+          <FileWarningIcon className="size-5 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground/60">Binary file — cannot display diff</p>
+        </div>
+      )}
+      {!isCollapsed && !file.isBinary && (
+        <div className="overflow-x-auto">
+          {viewMode === "unified" ? (
+            <UnifiedDiffView
+              file={file}
+              filePath={filePath}
+              threadLookup={threadLookup}
+              activeRange={activeRange}
+              selecting={selecting}
+              commentingRange={commentingRange}
+              onGutterMouseDown={onGutterMouseDown}
+              onGutterMouseEnter={onGutterMouseEnter}
+              onGutterClick={onGutterClick}
+              onCancelComment={onCancelComment}
+              onSubmitNewComment={onSubmitNewComment}
+              onAddComment={onAddComment}
+              onEditComment={onEditComment}
+              onDeleteComment={onDeleteComment}
+              onResolve={onResolve}
+            />
+          ) : (
+            <SplitDiffView
+              file={file}
+              filePath={filePath}
+              threadLookup={threadLookup}
+              activeRange={activeRange}
+              selecting={selecting}
+              commentingRange={commentingRange}
+              onGutterMouseDown={onGutterMouseDown}
+              onGutterMouseEnter={onGutterMouseEnter}
+              onGutterClick={onGutterClick}
+              onCancelComment={onCancelComment}
+              onSubmitNewComment={onSubmitNewComment}
+              onAddComment={onAddComment}
+              onEditComment={onEditComment}
+              onDeleteComment={onDeleteComment}
+              onResolve={onResolve}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+});
 
 // ============================================================
 // Gutter Cell — the clickable/draggable line number
@@ -551,7 +700,7 @@ function GutterCell({
 interface DiffViewProps {
   file: DiffFile;
   filePath: string;
-  threads: Thread[];
+  threadLookup: ThreadLookup;
   activeRange: LineRange | null;
   selecting: boolean;
   commentingRange: LineRange | null;
@@ -574,7 +723,7 @@ interface DiffViewProps {
 function UnifiedDiffView({
   file,
   filePath,
-  threads,
+  threadLookup,
   activeRange,
   selecting,
   commentingRange,
@@ -608,11 +757,12 @@ function UnifiedDiffView({
             {hunk.lines.map((line) => {
               const lineNum = line.newLineNumber ?? line.oldLineNumber ?? 0;
               const side: "left" | "right" = line.type === "delete" ? "left" : "right";
-              const lineThreads = threads.filter(
-                (t) =>
-                  t.filePath === filePath &&
-                  t.endLine === lineNum &&
-                  (line.type === "context" || t.side === side),
+              const lineThreads = getThreadsForUnifiedLine(
+                threadLookup,
+                filePath,
+                lineNum,
+                line.type,
+                side,
               );
               const isInRange =
                 activeRange?.filePath === filePath &&
@@ -767,10 +917,30 @@ function buildSplitLines(hunk: DiffHunk): SplitLine[] {
   return result;
 }
 
+function buildPreparedSplitLines(hunk: DiffHunk): PreparedSplitLine[] {
+  return buildSplitLines(hunk).map((pair) => {
+    const leftNum = pair.left?.oldLineNumber ?? null;
+    const rightNum = pair.right?.newLineNumber ?? null;
+    const isPairedChange = pair.left?.type === "delete" && pair.right?.type === "add";
+
+    return {
+      key: `${pair.left?.type ?? "e"}-${leftNum ?? "x"}-${rightNum ?? "x"}`,
+      left: pair.left,
+      right: pair.right,
+      leftNum,
+      rightNum,
+      wordDiff:
+        isPairedChange && pair.left && pair.right
+          ? computeWordDiff(pair.left.content, pair.right.content)
+          : null,
+    };
+  });
+}
+
 function SplitDiffView({
   file,
   filePath,
-  threads,
+  threadLookup,
   activeRange,
   selecting,
   commentingRange,
@@ -784,6 +954,15 @@ function SplitDiffView({
   onDeleteComment,
   onResolve,
 }: DiffViewProps) {
+  const preparedHunks = useMemo(
+    () =>
+      file.hunks.map((hunk) => ({
+        header: hunk.header,
+        lines: buildPreparedSplitLines(hunk),
+      })),
+    [file.hunks],
+  );
+
   return (
     <table
       className="w-full text-[13px] font-mono leading-[20px] border-collapse table-fixed"
@@ -796,9 +975,7 @@ function SplitDiffView({
         <col />
       </colgroup>
       <tbody>
-        {file.hunks.map((hunk) => {
-          const splitLines = buildSplitLines(hunk);
-
+        {preparedHunks.map((hunk) => {
           return (
             <Fragment key={hunk.header}>
               <tr className="bg-diff-hunk-bg">
@@ -810,45 +987,35 @@ function SplitDiffView({
                 </td>
               </tr>
 
-              {splitLines.map((pair) => {
-                const leftNum = pair.left?.oldLineNumber ?? null;
-                const rightNum = pair.right?.newLineNumber ?? null;
-
-                // Threads render after endLine
-                const lineThreads = threads.filter(
-                  (t) =>
-                    threadCoversLine(t, filePath, leftNum, "left") ||
-                    threadCoversLine(t, filePath, rightNum, "right"),
+              {hunk.lines.map((pair) => {
+                const lineThreads = getThreadsForSplitLine(
+                  threadLookup,
+                  filePath,
+                  pair.leftNum,
+                  pair.rightNum,
                 );
                 const isCommentTarget =
                   (commentingRange?.filePath === filePath &&
                     commentingRange?.side === "left" &&
-                    commentingRange?.endLine === leftNum) ||
+                    commentingRange?.endLine === pair.leftNum) ||
                   (commentingRange?.filePath === filePath &&
                     commentingRange?.side === "right" &&
-                    commentingRange?.endLine === rightNum);
-                const pairKey = `${pair.left?.type ?? "e"}-${leftNum ?? "x"}-${rightNum ?? "x"}`;
+                    commentingRange?.endLine === pair.rightNum);
 
                 // Line range highlighting
                 const leftInRange =
-                  activeRange?.filePath === filePath && isLineInRange(leftNum, "left", activeRange);
+                  activeRange?.filePath === filePath &&
+                  isLineInRange(pair.leftNum, "left", activeRange);
                 const rightInRange =
                   activeRange?.filePath === filePath &&
-                  isLineInRange(rightNum, "right", activeRange);
-
-                // Word diff
-                const isPairedChange = pair.left?.type === "delete" && pair.right?.type === "add";
-                const wordDiff =
-                  isPairedChange && pair.left && pair.right
-                    ? computeWordDiff(pair.left.content, pair.right.content)
-                    : null;
+                  isLineInRange(pair.rightNum, "right", activeRange);
 
                 return (
-                  <Fragment key={pairKey}>
+                  <Fragment key={pair.key}>
                     <tr className="group/line transition-colors duration-75">
                       {/* Left gutter */}
                       <GutterCell
-                        lineNum={leftNum}
+                        lineNum={pair.leftNum}
                         filePath={filePath}
                         side="left"
                         isInRange={leftInRange}
@@ -867,17 +1034,17 @@ function SplitDiffView({
                           leftInRange && "!bg-primary/10",
                         )}
                         onMouseEnter={() => {
-                          if (selecting && leftNum != null) {
-                            onGutterMouseEnter(filePath, leftNum, "left");
+                          if (selecting && pair.leftNum != null) {
+                            onGutterMouseEnter(filePath, pair.leftNum, "left");
                           }
                         }}
                       >
                         {pair.left && (
                           <span className={cn(pair.left.type === "delete" && "text-diff-del-fg")}>
                             {pair.left.type === "delete" ? "-" : " "}
-                            {wordDiff ? (
+                            {pair.wordDiff ? (
                               <SegmentedContent
-                                segments={wordDiff.oldSegments}
+                                segments={pair.wordDiff.oldSegments}
                                 highlightClass={WORD_HIGHLIGHT_DEL}
                               />
                             ) : (
@@ -889,7 +1056,7 @@ function SplitDiffView({
 
                       {/* Right gutter */}
                       <GutterCell
-                        lineNum={rightNum}
+                        lineNum={pair.rightNum}
                         filePath={filePath}
                         side="right"
                         isInRange={rightInRange}
@@ -908,17 +1075,17 @@ function SplitDiffView({
                           rightInRange && "!bg-primary/10",
                         )}
                         onMouseEnter={() => {
-                          if (selecting && rightNum != null) {
-                            onGutterMouseEnter(filePath, rightNum, "right");
+                          if (selecting && pair.rightNum != null) {
+                            onGutterMouseEnter(filePath, pair.rightNum, "right");
                           }
                         }}
                       >
                         {pair.right && (
                           <span className={cn(pair.right.type === "add" && "text-diff-add-fg")}>
                             {pair.right.type === "add" ? "+" : " "}
-                            {wordDiff ? (
+                            {pair.wordDiff ? (
                               <SegmentedContent
-                                segments={wordDiff.newSegments}
+                                segments={pair.wordDiff.newSegments}
                                 highlightClass={WORD_HIGHLIGHT_ADD}
                               />
                             ) : (
