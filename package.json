@@ -17,7 +17,8 @@
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
-    "test": "bun test",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "step-zero": "bun run bin/step-zero",
     "sz": "bun run bin/sz"
   },
@@ -50,7 +51,8 @@
     "oxfmt": "^0.38.0",
     "oxlint": "^1.53.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   },
   "trustedDependencies": [
     "unrs-resolver"

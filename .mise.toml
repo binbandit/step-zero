@@ -1,0 +1,10 @@
+[tools]
+bun = "1.3.10"
+
+[tasks."step-zero"]
+description = "Run the Step Zero CLI with Bun"
+run = "bun run bin/step-zero"
+
+[tasks.sz]
+description = "Run the Step Zero short CLI alias with Bun"
+run = "bun run bin/sz"

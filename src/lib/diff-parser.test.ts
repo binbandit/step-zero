@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { extractCodeContext, parseDiff } from "./diff-parser";
 
 describe("parseDiff", () => {
@@ -83,5 +83,21 @@ describe("extractCodeContext", () => {
         "+  11 |   return `Hello there, ${name}`;",
       ].join("\n"),
     );
+  });
+
+  test("returns an empty string when the line is not present", () => {
+    const rawDiff = [
+      "diff --git a/src/example.ts b/src/example.ts",
+      "index 1234567..89abcde 100644",
+      "--- a/src/example.ts",
+      "+++ b/src/example.ts",
+      "@@ -1,1 +1,1 @@",
+      "-return oldValue;",
+      "+return newValue;",
+    ].join("\n");
+
+    const file = parseDiff(rawDiff).files[0];
+
+    expect(extractCodeContext(file, 99)).toBe("");
   });
 });
