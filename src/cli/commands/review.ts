@@ -6,13 +6,13 @@ import { createSession, createRound, listSessions } from "../../lib/store";
 import { getCurrentBranch, getHeadSha, isGitRepo } from "../../lib/git";
 
 /**
- * Resolve the In the Loop project root directory.
- * Supports: global install (ITL_ROOT env), direct execution (walk up from __dirname).
+ * Resolve the Step Zero project root directory.
+ * Supports: global install (STEP_ZERO_ROOT env), direct execution (walk up from __dirname).
  */
-function getInTheLoopRoot(): string {
-  // Set by bin/in-the-loop when invoked globally.
-  if (process.env.ITL_ROOT || process.env.STEP_ZERO_ROOT) {
-    return process.env.ITL_ROOT || process.env.STEP_ZERO_ROOT || "";
+function getStepZeroRoot(): string {
+  // Set by bin/step-zero when invoked globally.
+  if (process.env.STEP_ZERO_ROOT || process.env.ITL_ROOT) {
+    return process.env.STEP_ZERO_ROOT || process.env.ITL_ROOT || "";
   }
 
   // Fallback: walk up from this file to find package.json with the current or legacy package name.
@@ -22,7 +22,7 @@ function getInTheLoopRoot(): string {
     if (fs.existsSync(pkgPath)) {
       try {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-        if (pkg.name === "in-the-loop" || pkg.name === "step-zero") return dir;
+        if (pkg.name === "step-zero" || pkg.name === "in-the-loop") return dir;
       } catch {}
     }
     const parent = path.dirname(dir);
@@ -56,7 +56,7 @@ export const reviewCommand = new Command("review")
     const baseBranch = options.base;
 
     console.log();
-    console.log(`\x1b[33m◆\x1b[0m \x1b[1mIn the Loop\x1b[0m — Starting review`);
+    console.log(`\x1b[33m◆\x1b[0m \x1b[1mStep Zero\x1b[0m — Starting review`);
     console.log();
     console.log(`  Branch:  \x1b[36m${branch}\x1b[0m`);
     console.log(`  Base:    \x1b[90m${baseBranch}\x1b[0m`);
@@ -97,11 +97,12 @@ export const reviewCommand = new Command("review")
 
     // Start Next.js dev server via bun (bun:sqlite requires bun runtime)
     // We run the next entry point directly with bun to avoid --bun/NODE_OPTIONS conflicts
-    const inTheLoopRoot = getInTheLoopRoot();
-    const nextEntry = path.join(inTheLoopRoot, "node_modules", "next", "dist", "bin", "next");
+    const stepZeroRoot = getStepZeroRoot();
+    const nextEntry = path.join(stepZeroRoot, "node_modules", "next", "dist", "bin", "next");
 
-    const serverProcess = spawn("bun", [nextEntry, "dev", "-p", options.port], {
-      cwd: inTheLoopRoot,
+    // Reuse the current Bun binary so the web UI runs on the same runtime version.
+    const serverProcess = spawn(process.execPath, [nextEntry, "dev", "-p", options.port], {
+      cwd: stepZeroRoot,
       stdio: "inherit",
       env: {
         ...process.env,

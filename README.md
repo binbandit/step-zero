@@ -1,22 +1,22 @@
-# In the Loop
+# Step Zero
 
-In the Loop is a local, single-user pre-PR review tool for engineers working with AI coding assistants. Review AI-generated changes in a GitHub-like diff interface, leave line-level comments, dispatch them to AI tools for resolution, and iterate through review rounds before creating a real PR.
+Step Zero is a local, single-user pre-PR review tool for engineers working with AI coding assistants. Review AI-generated changes in a GitHub-like diff interface, leave line-level comments, dispatch them to AI tools for resolution, and iterate through review rounds before creating a real PR.
 
 ## Install
 
 ```bash
 # Clone the repository
-git clone https://github.com/binbandit/in-the-loop.git
-cd in-the-loop
+git clone https://github.com/binbandit/step-zero.git
+cd step-zero
 
 # Install dependencies
 bun install
 
-# Install the `in-the-loop` CLI globally
-npm link
+# Install the CLI globally
+bun link
 ```
 
-Once linked, `in-the-loop` is available from any directory on your system. The legacy `step-zero` command remains available as a compatibility alias.
+Once linked, `step-zero` is available from any directory on your system. `sz` is also installed as a short alias.
 
 Requirements:
 
@@ -25,42 +25,44 @@ Requirements:
 - [GitHub CLI](https://cli.github.com/) (`gh`) for PR creation
 - One of [Claude Code](https://claude.ai/code), [Codex](https://openai.com/codex), or a custom CLI tool for AI dispatch
 
+Use Bun for install and linking. Avoid `npm link` or other Node-managed global shims so the CLI and web runtime stay on the same Bun version.
+
 ## Quick Start
 
 From any git repository:
 
 ```bash
 # Optional: inspect or set repo-local defaults
-in-the-loop config
+step-zero config
 
 # Start a review of the current branch vs main
-in-the-loop review
+step-zero review
 
 # Review against a specific base branch
-in-the-loop review --base develop
+sz review --base develop
 
 # Review a different branch or repository
-in-the-loop review feature/my-branch --repo /path/to/repo
+step-zero review feature/my-branch --repo /path/to/repo
 
 # Check status of all reviews
-in-the-loop status
+sz status
 ```
 
 Or run locally without global install:
 
 ```bash
-bun run in-the-loop review
-bun run in-the-loop status
+bun run step-zero review
+bun run sz status
 ```
 
 ## How It Works
 
-In the Loop sits between your AI coding tool and GitHub, giving you a structured review loop:
+Step Zero sits between your AI coding tool and GitHub, giving you a structured review loop:
 
 ```
 1. AI writes code on a branch
-2. You run `in-the-loop review` to start a review session
-3. In the Loop shows a full diff viewer (split or unified) with file tree
+2. You run `step-zero review` or `sz review` to start a review session
+3. Step Zero shows a full diff viewer (split or unified) with file tree
 4. You leave line-level comments on the diff
 5. "Send to AI" dispatches your comments + diff context to Claude Code, Codex, or a custom tool
 6. AI applies fixes, you re-review — repeat until satisfied
@@ -97,7 +99,7 @@ Shortcuts are disabled when typing in text inputs or textareas.
 ## CLI Reference
 
 ```text
-in-the-loop review [branch]
+step-zero review [branch]
   Start or resume a review session for a branch.
 
   Options:
@@ -106,13 +108,13 @@ in-the-loop review [branch]
     -p, --port <port>    Port for the local web UI (default: 3000)
         --no-open        Do not open the browser automatically
 
-in-the-loop status
+step-zero status
   Show review sessions for a repository.
 
   Options:
     -r, --repo <path>    Repository path (default: current directory)
 
-in-the-loop config
+step-zero config
   View or update repository configuration.
 
   Options:
@@ -124,7 +126,7 @@ in-the-loop config
 
 ## AI Tool Configuration
 
-In the Loop can dispatch review comments to different AI tools:
+Step Zero can dispatch review comments to different AI tools:
 
 | Tool            | How it works                                                   |
 | --------------- | -------------------------------------------------------------- |
@@ -163,8 +165,8 @@ src/
     index.ts                # CLI entry point
     commands/               # review, status, config commands
 bin/
-  in-the-loop               # Primary CLI executable
-  step-zero                 # Legacy CLI alias
+  step-zero                 # Primary CLI executable
+  sz                        # Short CLI alias
 ```
 
 ## Tech Stack
@@ -220,7 +222,7 @@ bun run format:check
 bun test
 
 # Run CLI commands without linking globally
-bun run in-the-loop review
-bun run in-the-loop status
-bun run in-the-loop config
+bun run step-zero review
+bun run step-zero status
+bun run step-zero config
 ```

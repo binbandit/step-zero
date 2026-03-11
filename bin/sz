@@ -1,0 +1,4 @@
+#!/usr/bin/env bun
+
+// Short CLI alias.
+await import("./step-zero");
