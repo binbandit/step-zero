@@ -1,22 +1,22 @@
-# Step Zero
+# In the Loop
 
-Step Zero is a local, single-user pre-PR review tool for engineers working with AI coding assistants. Review AI-generated changes in a GitHub-like diff interface, leave line-level comments, dispatch them to AI tools for resolution, and iterate through review rounds before creating a real PR.
+In the Loop is a local, single-user pre-PR review tool for engineers working with AI coding assistants. Review AI-generated changes in a GitHub-like diff interface, leave line-level comments, dispatch them to AI tools for resolution, and iterate through review rounds before creating a real PR.
 
 ## Install
 
 ```bash
 # Clone the repository
-git clone https://github.com/binbandit/step-zero.git
-cd step-zero
+git clone https://github.com/binbandit/in-the-loop.git
+cd in-the-loop
 
 # Install dependencies
 bun install
 
-# Install the `step-zero` CLI globally
+# Install the `in-the-loop` CLI globally
 npm link
 ```
 
-Once linked, `step-zero` is available from any directory on your system.
+Once linked, `in-the-loop` is available from any directory on your system. The legacy `step-zero` command remains available as a compatibility alias.
 
 Requirements:
 
@@ -31,36 +31,36 @@ From any git repository:
 
 ```bash
 # Optional: inspect or set repo-local defaults
-step-zero config
+in-the-loop config
 
 # Start a review of the current branch vs main
-step-zero review
+in-the-loop review
 
 # Review against a specific base branch
-step-zero review --base develop
+in-the-loop review --base develop
 
 # Review a different branch or repository
-step-zero review feature/my-branch --repo /path/to/repo
+in-the-loop review feature/my-branch --repo /path/to/repo
 
 # Check status of all reviews
-step-zero status
+in-the-loop status
 ```
 
 Or run locally without global install:
 
 ```bash
-bun run step-zero review
-bun run step-zero status
+bun run in-the-loop review
+bun run in-the-loop status
 ```
 
 ## How It Works
 
-Step Zero sits between your AI coding tool and GitHub, giving you a structured review loop:
+In the Loop sits between your AI coding tool and GitHub, giving you a structured review loop:
 
 ```
 1. AI writes code on a branch
-2. You run `step-zero review` to start a review session
-3. Step Zero shows a full diff viewer (split or unified) with file tree
+2. You run `in-the-loop review` to start a review session
+3. In the Loop shows a full diff viewer (split or unified) with file tree
 4. You leave line-level comments on the diff
 5. "Send to AI" dispatches your comments + diff context to Claude Code, Codex, or a custom tool
 6. AI applies fixes, you re-review — repeat until satisfied
@@ -97,7 +97,7 @@ Shortcuts are disabled when typing in text inputs or textareas.
 ## CLI Reference
 
 ```text
-step-zero review [branch]
+in-the-loop review [branch]
   Start or resume a review session for a branch.
 
   Options:
@@ -106,13 +106,13 @@ step-zero review [branch]
     -p, --port <port>    Port for the local web UI (default: 3000)
         --no-open        Do not open the browser automatically
 
-step-zero status
+in-the-loop status
   Show review sessions for a repository.
 
   Options:
     -r, --repo <path>    Repository path (default: current directory)
 
-step-zero config
+in-the-loop config
   View or update repository configuration.
 
   Options:
@@ -124,7 +124,7 @@ step-zero config
 
 ## AI Tool Configuration
 
-Step Zero can dispatch review comments to different AI tools:
+In the Loop can dispatch review comments to different AI tools:
 
 | Tool            | How it works                                                   |
 | --------------- | -------------------------------------------------------------- |
@@ -163,7 +163,8 @@ src/
     index.ts                # CLI entry point
     commands/               # review, status, config commands
 bin/
-  step-zero                 # CLI executable
+  in-the-loop               # Primary CLI executable
+  step-zero                 # Legacy CLI alias
 ```
 
 ## Tech Stack
@@ -219,7 +220,7 @@ bun run format:check
 bun test
 
 # Run CLI commands without linking globally
-bun run step-zero review
-bun run step-zero status
-bun run step-zero config
+bun run in-the-loop review
+bun run in-the-loop status
+bun run in-the-loop config
 ```
