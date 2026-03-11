@@ -41,7 +41,7 @@ interface DiffViewerProps {
     body: string,
     side: "left" | "right",
     startLine: number,
-    endLine: number
+    endLine: number,
   ) => void;
   fileRefs: React.MutableRefObject<Map<string, HTMLDivElement | null>>;
   viewedFiles?: Set<string>;
@@ -79,9 +79,7 @@ function tokenize(str: string): string[] {
 function lcs(a: string[], b: string[]): Array<[number, number]> {
   const m = a.length;
   const n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, () =>
-    new Array(n + 1).fill(0)
-  );
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
       if (a[i - 1] === b[j - 1]) {
@@ -110,7 +108,7 @@ function lcs(a: string[], b: string[]): Array<[number, number]> {
 
 function computeWordDiff(
   oldContent: string,
-  newContent: string
+  newContent: string,
 ): { oldSegments: DiffSegment[]; newSegments: DiffSegment[] } {
   const oldTokens = tokenize(oldContent);
   const newTokens = tokenize(newContent);
@@ -195,7 +193,7 @@ function useLineRangeSelection(onSelectionComplete?: (range: LineRange) => void)
         side,
       });
     },
-    [updateSelectionRange]
+    [updateSelectionRange],
   );
 
   const handleGutterMouseEnter = useCallback(
@@ -212,7 +210,7 @@ function useLineRangeSelection(onSelectionComplete?: (range: LineRange) => void)
         side: anchorRef.current.side,
       });
     },
-    [selecting, updateSelectionRange]
+    [selecting, updateSelectionRange],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -254,7 +252,11 @@ function useLineRangeSelection(onSelectionComplete?: (range: LineRange) => void)
 // Check if a line number is within a selection range
 // ============================================================
 
-function isLineInRange(lineNum: number | null, side: "left" | "right", range: LineRange | null): boolean {
+function isLineInRange(
+  lineNum: number | null,
+  side: "left" | "right",
+  range: LineRange | null,
+): boolean {
   if (!range || lineNum == null) return false;
   if (range.side !== side) return false;
   return lineNum >= range.startLine && lineNum <= range.endLine;
@@ -265,7 +267,7 @@ function threadCoversLine(
   thread: Thread,
   filePath: string,
   lineNum: number | null,
-  side: "left" | "right"
+  side: "left" | "right",
 ): boolean {
   if (lineNum == null) return false;
   if (thread.filePath !== filePath) return false;
@@ -324,7 +326,7 @@ export function DiffViewer({
       body,
       commentingRange.side,
       commentingRange.startLine,
-      commentingRange.endLine
+      commentingRange.endLine,
     );
     setCommentingRange(null);
     clearSelection();
@@ -367,9 +369,7 @@ export function DiffViewer({
                   <ChevronDownIcon className="size-3.5 text-muted-foreground shrink-0" />
                 )}
                 {getStatusIcon(file.status)}
-                <span className="font-mono text-xs font-medium truncate">
-                  {filePath}
-                </span>
+                <span className="font-mono text-xs font-medium truncate">{filePath}</span>
 
                 {file.status === "renamed" && file.oldPath !== file.newPath && (
                   <span className="text-[10px] text-muted-foreground/60 font-mono truncate">
@@ -381,14 +381,10 @@ export function DiffViewer({
 
                 <span className="flex items-center gap-2 text-[11px] shrink-0">
                   {file.additions > 0 && (
-                    <span className="text-diff-add-fg font-mono">
-                      +{file.additions}
-                    </span>
+                    <span className="text-diff-add-fg font-mono">+{file.additions}</span>
                   )}
                   {file.deletions > 0 && (
-                    <span className="text-diff-del-fg font-mono">
-                      -{file.deletions}
-                    </span>
+                    <span className="text-diff-del-fg font-mono">-{file.deletions}</span>
                   )}
                 </span>
               </button>
@@ -401,10 +397,12 @@ export function DiffViewer({
                     onChange={() => onToggleViewed(filePath)}
                     className="size-3.5 rounded border-border accent-emerald-500"
                   />
-                  <span className={cn(
-                    "transition-colors",
-                    viewedFiles?.has(filePath) ? "text-emerald-400" : "text-muted-foreground/50"
-                  )}>
+                  <span
+                    className={cn(
+                      "transition-colors",
+                      viewedFiles?.has(filePath) ? "text-emerald-400" : "text-muted-foreground/50",
+                    )}
+                  >
                     Viewed
                   </span>
                 </label>
@@ -488,17 +486,24 @@ function GutterCell({
   side: "left" | "right";
   isInRange: boolean;
   selecting: boolean;
-  onMouseDown: (filePath: string, lineNum: number, side: "left" | "right", e: React.MouseEvent) => void;
+  onMouseDown: (
+    filePath: string,
+    lineNum: number,
+    side: "left" | "right",
+    e: React.MouseEvent,
+  ) => void;
   onMouseEnter: (filePath: string, lineNum: number, side: "left" | "right") => void;
   onClick: (filePath: string, lineNum: number, side: "left" | "right") => void;
   className?: string;
 }) {
   if (lineNum == null) {
     return (
-      <td className={cn(
-        "w-[1px] whitespace-nowrap text-right px-2 text-[11px] select-none align-top leading-[20px] border-r border-border/10",
-        className
-      )}>
+      <td
+        className={cn(
+          "w-[1px] whitespace-nowrap text-right px-2 text-[11px] select-none align-top leading-[20px] border-r border-border/10",
+          className,
+        )}
+      >
         {""}
       </td>
     );
@@ -509,7 +514,7 @@ function GutterCell({
       className={cn(
         "w-[1px] whitespace-nowrap text-right px-2 text-[11px] select-none align-top leading-[20px] border-r border-border/10 relative group/gutter cursor-pointer",
         isInRange ? "bg-primary/20 text-primary" : "text-diff-gutter",
-        className
+        className,
       )}
       onMouseDown={(e) => onMouseDown(filePath, lineNum, side, e)}
       onMouseEnter={() => {
@@ -523,9 +528,7 @@ function GutterCell({
         type="button"
         className={cn(
           "absolute inset-0 flex items-center justify-center transition-opacity",
-          selecting
-            ? "pointer-events-none opacity-0"
-            : "opacity-0 group-hover/gutter:opacity-100"
+          selecting ? "pointer-events-none opacity-0" : "opacity-0 group-hover/gutter:opacity-100",
         )}
         onClick={(e) => {
           e.stopPropagation();
@@ -552,7 +555,12 @@ interface DiffViewProps {
   activeRange: LineRange | null;
   selecting: boolean;
   commentingRange: LineRange | null;
-  onGutterMouseDown: (filePath: string, lineNum: number, side: "left" | "right", e: React.MouseEvent) => void;
+  onGutterMouseDown: (
+    filePath: string,
+    lineNum: number,
+    side: "left" | "right",
+    e: React.MouseEvent,
+  ) => void;
   onGutterMouseEnter: (filePath: string, lineNum: number, side: "left" | "right") => void;
   onGutterClick: (filePath: string, lineNum: number, side: "left" | "right") => void;
   onCancelComment: () => void;
@@ -604,7 +612,7 @@ function UnifiedDiffView({
                 (t) =>
                   t.filePath === filePath &&
                   t.endLine === lineNum &&
-                  (line.type === "context" || t.side === side)
+                  (line.type === "context" || t.side === side),
               );
               const isInRange =
                 activeRange?.filePath === filePath &&
@@ -624,7 +632,7 @@ function UnifiedDiffView({
                       "group/line transition-colors duration-75",
                       line.type === "add" && "bg-diff-add-line",
                       line.type === "delete" && "bg-diff-del-line",
-                      isInRange && "!bg-primary/10"
+                      isInRange && "!bg-primary/10",
                     )}
                     onMouseEnter={() => {
                       if (selecting) onGutterMouseEnter(filePath, lineNum, side);
@@ -650,14 +658,10 @@ function UnifiedDiffView({
                       <span
                         className={cn(
                           line.type === "add" && "text-diff-add-fg",
-                          line.type === "delete" && "text-diff-del-fg"
+                          line.type === "delete" && "text-diff-del-fg",
                         )}
                       >
-                        {line.type === "add"
-                          ? "+"
-                          : line.type === "delete"
-                            ? "-"
-                            : " "}
+                        {line.type === "add" ? "+" : line.type === "delete" ? "-" : " "}
                         {line.content}
                       </span>
                     </td>
@@ -814,7 +818,7 @@ function SplitDiffView({
                 const lineThreads = threads.filter(
                   (t) =>
                     threadCoversLine(t, filePath, leftNum, "left") ||
-                    threadCoversLine(t, filePath, rightNum, "right")
+                    threadCoversLine(t, filePath, rightNum, "right"),
                 );
                 const isCommentTarget =
                   (commentingRange?.filePath === filePath &&
@@ -827,15 +831,13 @@ function SplitDiffView({
 
                 // Line range highlighting
                 const leftInRange =
-                  activeRange?.filePath === filePath &&
-                  isLineInRange(leftNum, "left", activeRange);
+                  activeRange?.filePath === filePath && isLineInRange(leftNum, "left", activeRange);
                 const rightInRange =
                   activeRange?.filePath === filePath &&
                   isLineInRange(rightNum, "right", activeRange);
 
                 // Word diff
-                const isPairedChange =
-                  pair.left?.type === "delete" && pair.right?.type === "add";
+                const isPairedChange = pair.left?.type === "delete" && pair.right?.type === "add";
                 const wordDiff =
                   isPairedChange && pair.left && pair.right
                     ? computeWordDiff(pair.left.content, pair.right.content)
@@ -854,9 +856,7 @@ function SplitDiffView({
                         onMouseDown={onGutterMouseDown}
                         onMouseEnter={onGutterMouseEnter}
                         onClick={onGutterClick}
-                        className={cn(
-                          pair.left?.type === "delete" && "bg-diff-del-line"
-                        )}
+                        className={cn(pair.left?.type === "delete" && "bg-diff-del-line")}
                       />
                       {/* Left content */}
                       <td
@@ -864,7 +864,7 @@ function SplitDiffView({
                           "pl-4 pr-2 whitespace-pre overflow-hidden border-r border-border/20",
                           pair.left?.type === "delete" && "bg-diff-del-line",
                           !pair.left && "bg-muted/10",
-                          leftInRange && "!bg-primary/10"
+                          leftInRange && "!bg-primary/10",
                         )}
                         onMouseEnter={() => {
                           if (selecting && leftNum != null) {
@@ -873,11 +873,7 @@ function SplitDiffView({
                         }}
                       >
                         {pair.left && (
-                          <span
-                            className={cn(
-                              pair.left.type === "delete" && "text-diff-del-fg"
-                            )}
-                          >
+                          <span className={cn(pair.left.type === "delete" && "text-diff-del-fg")}>
                             {pair.left.type === "delete" ? "-" : " "}
                             {wordDiff ? (
                               <SegmentedContent
@@ -901,9 +897,7 @@ function SplitDiffView({
                         onMouseDown={onGutterMouseDown}
                         onMouseEnter={onGutterMouseEnter}
                         onClick={onGutterClick}
-                        className={cn(
-                          pair.right?.type === "add" && "bg-diff-add-line"
-                        )}
+                        className={cn(pair.right?.type === "add" && "bg-diff-add-line")}
                       />
                       {/* Right content */}
                       <td
@@ -911,7 +905,7 @@ function SplitDiffView({
                           "pl-4 pr-4 whitespace-pre overflow-hidden",
                           pair.right?.type === "add" && "bg-diff-add-line",
                           !pair.right && "bg-muted/10",
-                          rightInRange && "!bg-primary/10"
+                          rightInRange && "!bg-primary/10",
                         )}
                         onMouseEnter={() => {
                           if (selecting && rightNum != null) {
@@ -920,11 +914,7 @@ function SplitDiffView({
                         }}
                       >
                         {pair.right && (
-                          <span
-                            className={cn(
-                              pair.right.type === "add" && "text-diff-add-fg"
-                            )}
-                          >
+                          <span className={cn(pair.right.type === "add" && "text-diff-add-fg")}>
                             {pair.right.type === "add" ? "+" : " "}
                             {wordDiff ? (
                               <SegmentedContent

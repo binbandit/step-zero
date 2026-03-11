@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   GitBranchIcon,
@@ -35,11 +35,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { timeAgo } from "@/lib/utils";
 import type { ReviewSession } from "@/types";
@@ -50,14 +46,20 @@ function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case "approved":
       return (
-        <Badge variant="default" className="gap-1.5 bg-emerald-500/15 text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/20">
+        <Badge
+          variant="default"
+          className="gap-1.5 bg-emerald-500/15 text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/20"
+        >
           <CheckCircle2Icon className="size-3" />
           Approved
         </Badge>
       );
     case "changes_requested":
       return (
-        <Badge variant="default" className="gap-1.5 bg-amber-500/15 text-amber-400 border-amber-500/25 hover:bg-amber-500/20">
+        <Badge
+          variant="default"
+          className="gap-1.5 bg-amber-500/15 text-amber-400 border-amber-500/25 hover:bg-amber-500/20"
+        >
           <AlertCircleIcon className="size-3" />
           Changes Requested
         </Badge>
@@ -76,6 +78,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const repoPathInputRef = useRef<HTMLInputElement>(null);
   const [sessions, setSessions] = useState<ReviewSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -105,6 +108,11 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchSessions();
   }, [fetchSessions]);
+
+  useEffect(() => {
+    if (!newDialogOpen) return;
+    repoPathInputRef.current?.focus();
+  }, [newDialogOpen]);
 
   async function handleCreate() {
     if (!repoPath || !branch) {
@@ -175,8 +183,8 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold tracking-tight">Step Zero</h1>
           </div>
           <p className="text-muted-foreground mt-1 max-w-lg text-[15px] leading-relaxed">
-            Pre-PR review layer for AI-generated code. Review diffs, leave
-            feedback, and let AI address your comments before the real PR.
+            Pre-PR review layer for AI-generated code. Review diffs, leave feedback, and let AI
+            address your comments before the real PR.
           </p>
         </header>
 
@@ -202,8 +210,7 @@ export default function DashboardPage() {
               <DialogHeader>
                 <DialogTitle>New Review Session</DialogTitle>
                 <DialogDescription>
-                  Point to a repository and branch to start reviewing
-                  AI-generated changes.
+                  Point to a repository and branch to start reviewing AI-generated changes.
                 </DialogDescription>
               </DialogHeader>
 
@@ -220,18 +227,20 @@ export default function DashboardPage() {
                   </label>
                   <input
                     id="repo-path"
+                    ref={repoPathInputRef}
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring font-mono"
                     placeholder="/path/to/your/repo"
                     value={repoPath}
                     onChange={(e) => setRepoPath(e.target.value)}
-                    autoFocus
                     required
                   />
                 </div>
 
                 <div className="flex gap-3">
                   <div className="flex flex-col gap-2 flex-1">
-                    <label htmlFor="branch" className="text-sm font-medium">Branch</label>
+                    <label htmlFor="branch" className="text-sm font-medium">
+                      Branch
+                    </label>
                     <input
                       id="branch"
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring font-mono"
@@ -243,7 +252,9 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="flex flex-col gap-2 flex-1">
-                    <label htmlFor="base-branch" className="text-sm font-medium">Base Branch</label>
+                    <label htmlFor="base-branch" className="text-sm font-medium">
+                      Base Branch
+                    </label>
                     <input
                       id="base-branch"
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring font-mono"
@@ -256,10 +267,7 @@ export default function DashboardPage() {
               </form>
 
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setNewDialogOpen(false)}
-                >
+                <Button variant="outline" onClick={() => setNewDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button onClick={handleCreate} disabled={creating}>
@@ -304,12 +312,10 @@ export default function DashboardPage() {
             <div className="size-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-6 border border-border/50">
               <FolderGit2Icon className="size-8 text-muted-foreground/40" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">
-              No review sessions yet
-            </h3>
+            <h3 className="text-lg font-semibold mb-2">No review sessions yet</h3>
             <p className="text-muted-foreground text-sm max-w-sm mb-6 leading-relaxed">
-              Create a review session to start reviewing AI-generated code
-              changes before they become a pull request.
+              Create a review session to start reviewing AI-generated code changes before they
+              become a pull request.
             </p>
             <Button onClick={() => setNewDialogOpen(true)}>
               <PlusIcon data-icon="inline-start" />
@@ -319,10 +325,7 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sessions.map((session) => {
-              const totalComments = session.threads.reduce(
-                (sum, t) => sum + t.comments.length,
-                0
-              );
+              const totalComments = session.threads.reduce((sum, t) => sum + t.comments.length, 0);
 
               return (
                 <Card
@@ -370,10 +373,7 @@ export default function DashboardPage() {
                           <span className="text-diff-del-fg font-mono">
                             -{session.stats.deletions}
                           </span>
-                          <Separator
-                            orientation="vertical"
-                            className="h-3"
-                          />
+                          <Separator orientation="vertical" className="h-3" />
                         </>
                       )}
                       <span className="flex items-center gap-1">
@@ -381,9 +381,7 @@ export default function DashboardPage() {
                         {totalComments}
                       </span>
                       {session.rounds.length > 0 && (
-                        <span className="font-mono">
-                          R{session.rounds.length}
-                        </span>
+                        <span className="font-mono">R{session.rounds.length}</span>
                       )}
                     </div>
                   </CardContent>

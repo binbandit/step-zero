@@ -1,18 +1,14 @@
-import simpleGit, { type SimpleGit } from "simple-git";
+import gitFactory, { type SimpleGit } from "simple-git";
 
 function getGit(repoPath: string): SimpleGit {
-  return simpleGit(repoPath);
+  return gitFactory(repoPath);
 }
 
 /**
  * Get the raw unified diff between base and head.
  * If head is omitted, uses the current working tree.
  */
-export async function getDiff(
-  repoPath: string,
-  base: string,
-  head?: string
-): Promise<string> {
+export async function getDiff(repoPath: string, base: string, head?: string): Promise<string> {
   const git = getGit(repoPath);
   if (head) {
     return git.diff([`${base}...${head}`]);
@@ -27,7 +23,7 @@ export async function getDiff(
 export async function getDiffBetweenCommits(
   repoPath: string,
   sha1: string,
-  sha2: string
+  sha2: string,
 ): Promise<string> {
   const git = getGit(repoPath);
   return git.diff([sha1, sha2]);
@@ -57,7 +53,7 @@ export async function getHeadSha(repoPath: string): Promise<string> {
 export async function getMergeBase(
   repoPath: string,
   branch1: string,
-  branch2: string
+  branch2: string,
 ): Promise<string> {
   const git = getGit(repoPath);
   const result = await git.raw(["merge-base", branch1, branch2]);
@@ -70,10 +66,8 @@ export async function getMergeBase(
 export async function getCommitLog(
   repoPath: string,
   base: string,
-  head?: string
-): Promise<
-  { sha: string; message: string; author: string; date: string }[]
-> {
+  head?: string,
+): Promise<{ sha: string; message: string; author: string; date: string }[]> {
   const git = getGit(repoPath);
 
   try {
@@ -95,7 +89,7 @@ export async function getCommitLog(
 export async function getFileAtRef(
   repoPath: string,
   filePath: string,
-  ref: string
+  ref: string,
 ): Promise<string | null> {
   const git = getGit(repoPath);
   try {
@@ -149,7 +143,7 @@ export async function isGitRepo(repoPath: string): Promise<boolean> {
 export async function getDiffStats(
   repoPath: string,
   base: string,
-  head?: string
+  head?: string,
 ): Promise<{ filesChanged: number; additions: number; deletions: number }> {
   const git = getGit(repoPath);
   const result = await git.diffSummary([head ? `${base}...${head}` : base]);

@@ -19,12 +19,7 @@ const claudeAdapter: AIAdapter = {
   buildCommand(prompt: string) {
     return {
       cmd: "claude",
-      args: [
-        "-p",
-        prompt,
-        "--allowedTools",
-        "Edit,Write,Bash,Read,Glob,Grep",
-      ],
+      args: ["-p", prompt, "--allowedTools", "Edit,Write,Bash,Read,Glob,Grep"],
     };
   },
 };
@@ -115,7 +110,7 @@ export async function dispatchToAI(
   feedback: ReviewFeedback,
   repoPath: string,
   tool: string = "claude",
-  customCommand?: string
+  customCommand?: string,
 ): Promise<DispatchResult> {
   const adapter = getAdapter(tool, customCommand);
   const prompt = buildReviewPrompt(feedback);

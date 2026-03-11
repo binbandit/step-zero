@@ -21,11 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 
 interface ReviewActionsProps {
@@ -128,15 +124,11 @@ export function ReviewActions({
                 <PanelLeftIcon
                   className={cn(
                     "size-4 transition-colors",
-                    sidebarOpen
-                      ? "text-foreground"
-                      : "text-muted-foreground"
+                    sidebarOpen ? "text-foreground" : "text-muted-foreground",
                   )}
                 />
               </TooltipTrigger>
-              <TooltipContent>
-                {sidebarOpen ? "Hide file tree" : "Show file tree"}
-              </TooltipContent>
+              <TooltipContent>{sidebarOpen ? "Hide file tree" : "Show file tree"}</TooltipContent>
             </Tooltip>
 
             <Separator orientation="vertical" className="h-5" />
@@ -156,7 +148,7 @@ export function ReviewActions({
                   "flex items-center gap-1.5 h-7 px-2.5 text-xs rounded-md transition-all",
                   viewMode === "split"
                     ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <ColumnsIcon className="size-3.5" />
@@ -171,7 +163,7 @@ export function ReviewActions({
                   "flex items-center gap-1.5 h-7 px-2.5 text-xs rounded-md transition-all",
                   viewMode === "unified"
                     ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <AlignJustifyIcon className="size-3.5" />
@@ -187,10 +179,7 @@ export function ReviewActions({
               <span className="text-muted-foreground">
                 {openThreadCount > 0 ? (
                   <>
-                    <span className="text-primary font-semibold">
-                      {openThreadCount}
-                    </span>{" "}
-                    open
+                    <span className="text-primary font-semibold">{openThreadCount}</span> open
                   </>
                 ) : totalThreadCount > 0 ? (
                   <span className="text-emerald-400">All resolved</span>
@@ -198,9 +187,7 @@ export function ReviewActions({
                   "No comments"
                 )}
                 {totalThreadCount > 0 && (
-                  <span className="text-muted-foreground/50 ml-1">
-                    / {totalThreadCount}
-                  </span>
+                  <span className="text-muted-foreground/50 ml-1">/ {totalThreadCount}</span>
                 )}
               </span>
             </div>
@@ -247,16 +234,10 @@ export function ReviewActions({
                   <Button
                     size="sm"
                     onClick={() => setApproveDialogOpen(true)}
-                    disabled={
-                      isDispatching ||
-                      sessionStatus === "approved" ||
-                      openThreadCount > 0
-                    }
+                    disabled={isDispatching || sessionStatus === "approved" || openThreadCount > 0}
                     className={cn(
                       "gap-2",
-                      openThreadCount === 0
-                        ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                        : ""
+                      openThreadCount === 0 ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "",
                     )}
                   />
                 }
@@ -282,28 +263,21 @@ export function ReviewActions({
           <DialogHeader>
             <DialogTitle>Send Comments to AI</DialogTitle>
             <DialogDescription>
-              This will dispatch {openThreadCount} open thread(s) to your
-              configured AI tool. The AI will read your review comments and
-              modify the code to address them.
+              This will dispatch {openThreadCount} open thread(s) to your configured AI tool. The AI
+              will read your review comments and modify the code to address them.
             </DialogDescription>
           </DialogHeader>
 
           <div className="rounded-lg border border-border/50 bg-muted/30 p-3 text-xs text-muted-foreground">
-            The AI will auto-commit changes to the branch. You&apos;ll review
-            the updated diff in a new round.
+            The AI will auto-commit changes to the branch. You&apos;ll review the updated diff in a
+            new round.
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDispatchOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setConfirmDispatchOpen(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={handleConfirmDispatch}
-              className="gap-2 border-primary/30"
-            >
+            <Button onClick={handleConfirmDispatch} className="gap-2 border-primary/30">
               <BotIcon className="size-3.5" />
               Send to AI
             </Button>
@@ -322,8 +296,13 @@ export function ReviewActions({
           </DialogHeader>
 
           <div className="py-2">
-            <label className="flex items-center gap-3 text-sm cursor-pointer rounded-lg border border-border/50 p-3 hover:bg-muted/30 transition-colors">
+            <label
+              htmlFor="create-pr"
+              className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/50 p-3 text-sm transition-colors hover:bg-muted/30"
+            >
+              <span className="sr-only">Create a GitHub pull request</span>
               <input
+                id="create-pr"
                 type="checkbox"
                 checked={createPR}
                 onChange={(e) => setCreatePR(e.target.checked)}
@@ -339,10 +318,7 @@ export function ReviewActions({
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setApproveDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setApproveDialogOpen(false)}>
               Cancel
             </Button>
             <Button

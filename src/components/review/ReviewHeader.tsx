@@ -1,19 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import {
-  GitBranchIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  LayersIcon,
-} from "lucide-react";
+import { GitBranchIcon, ArrowLeftIcon, ArrowRightIcon, LayersIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { ReviewSession, DiffStats } from "@/types";
 
 interface ReviewHeaderProps {
@@ -37,14 +28,7 @@ export function ReviewHeader({ session, stats }: ReviewHeaderProps) {
         <Separator orientation="vertical" className="h-5" />
 
         <Tooltip>
-          <TooltipTrigger
-            render={
-              <Link
-                href="/"
-                className="flex items-center gap-2 shrink-0"
-              />
-            }
-          >
+          <TooltipTrigger render={<Link href="/" className="flex items-center gap-2 shrink-0" />}>
             <LayersIcon className="size-4 text-primary" />
             <span className="text-sm font-semibold tracking-tight">SZ</span>
           </TooltipTrigger>
@@ -69,9 +53,7 @@ export function ReviewHeader({ session, stats }: ReviewHeaderProps) {
           <ArrowRightIcon className="size-3 text-muted-foreground/50 shrink-0" />
           <Tooltip>
             <TooltipTrigger
-              render={
-                <span className="font-mono font-medium text-xs truncate max-w-[200px]" />
-              }
+              render={<span className="font-mono font-medium text-xs truncate max-w-[200px]" />}
             >
               {session.branch}
             </TooltipTrigger>
@@ -85,15 +67,10 @@ export function ReviewHeader({ session, stats }: ReviewHeaderProps) {
             <Separator orientation="vertical" className="h-5 max-md:hidden" />
             <div className="items-center gap-3 text-xs hidden md:flex">
               <span className="text-muted-foreground">
-                {stats.filesChanged}{" "}
-                {stats.filesChanged === 1 ? "file" : "files"}
+                {stats.filesChanged} {stats.filesChanged === 1 ? "file" : "files"}
               </span>
-              <span className="text-diff-add-fg font-mono font-medium">
-                +{stats.additions}
-              </span>
-              <span className="text-diff-del-fg font-mono font-medium">
-                -{stats.deletions}
-              </span>
+              <span className="text-diff-add-fg font-mono font-medium">+{stats.additions}</span>
+              <span className="text-diff-del-fg font-mono font-medium">-{stats.deletions}</span>
             </div>
           </>
         )}
@@ -102,10 +79,7 @@ export function ReviewHeader({ session, stats }: ReviewHeaderProps) {
         {session.rounds.length > 0 && (
           <>
             <Separator orientation="vertical" className="h-5 max-sm:hidden" />
-            <Badge
-              variant="secondary"
-              className="text-[10px] font-mono max-sm:hidden"
-            >
+            <Badge variant="secondary" className="text-[10px] font-mono max-sm:hidden">
               Round {session.rounds.length}
             </Badge>
           </>
@@ -134,9 +108,7 @@ function StatusIndicator({ status }: { status: string }) {
       return (
         <div className="flex items-center gap-2 text-xs">
           <div className="size-2 rounded-full bg-amber-400 animate-pulse" />
-          <span className="text-amber-400 font-medium">
-            Changes Requested
-          </span>
+          <span className="text-amber-400 font-medium">Changes Requested</span>
         </div>
       );
     default:

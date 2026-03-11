@@ -5,9 +5,7 @@
 export function getRepoPath(): string {
   if (typeof window !== "undefined") {
     return (
-      localStorage.getItem("step-zero-repo-path") ||
-      localStorage.getItem("itl-repo-path") ||
-      ""
+      localStorage.getItem("step-zero-repo-path") || localStorage.getItem("itl-repo-path") || ""
     );
   }
   return process.cwd();

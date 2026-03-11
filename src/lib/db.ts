@@ -18,10 +18,7 @@ export function getDb(repoPath?: string): Database {
   if (_db) return _db;
 
   const basePath =
-    process.env.STEP_ZERO_REPO_PATH ||
-    process.env.ITL_REPO_PATH ||
-    repoPath ||
-    process.cwd();
+    process.env.STEP_ZERO_REPO_PATH || process.env.ITL_REPO_PATH || repoPath || process.cwd();
   const dataDir = resolveDataDir(basePath);
 
   if (!fs.existsSync(dataDir)) {
@@ -131,6 +128,8 @@ function migrate(db: Database): void {
     db.exec("ALTER TABLE threads ADD COLUMN start_line INTEGER NOT NULL DEFAULT 0");
     db.exec("ALTER TABLE threads ADD COLUMN end_line INTEGER NOT NULL DEFAULT 0");
     // Backfill existing rows: start_line = end_line = line_number
-    db.exec("UPDATE threads SET start_line = line_number, end_line = line_number WHERE start_line = 0");
+    db.exec(
+      "UPDATE threads SET start_line = line_number, end_line = line_number WHERE start_line = 0",
+    );
   }
 }

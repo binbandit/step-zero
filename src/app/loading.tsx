@@ -29,10 +29,7 @@ export default function DashboardLoading() {
         {/* Cards grid skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-xl border border-border/50 bg-card/50 p-0"
-            >
+            <div key={i} className="rounded-xl border border-border/50 bg-card/50 p-0">
               <div className="p-6 pb-3">
                 <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-4 w-1/2 mt-2" />

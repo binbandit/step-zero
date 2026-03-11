@@ -9,10 +9,7 @@ import { parseDiff } from "@/lib/diff-parser";
  *   - round: specific round number to show inter-round diff
  *   - mode: "full" (vs base) or "round" (vs previous round)
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const repoPath = request.nextUrl.searchParams.get("repoPath") || undefined;
@@ -32,7 +29,7 @@ export async function GET(
       rawDiff = await getDiffBetweenCommits(
         session.repoPath,
         prevRound.commitShaEnd,
-        currRound.commitShaEnd
+        currRound.commitShaEnd,
       );
     } else {
       // Full diff against base branch

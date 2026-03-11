@@ -6,14 +6,15 @@ import { spawn } from "child_process";
  * POST /api/reviews/[id]/approve — Approve the review and optionally create a PR
  * Body: { createPR?: boolean, prTitle?: string, prBody?: string }
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: sessionId } = await params;
     const body = await request.json();
-    const { createPR = false, prTitle, prBody } = body as {
+    const {
+      createPR = false,
+      prTitle,
+      prBody,
+    } = body as {
       createPR?: boolean;
       prTitle?: string;
       prBody?: string;
@@ -34,7 +35,7 @@ export async function POST(
           error: `Cannot approve with ${openThreads.length} unresolved thread(s)`,
           openThreads: openThreads.length,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -55,7 +56,7 @@ export async function POST(
         session.branch,
         session.baseBranch,
         title,
-        prBodyText
+        prBodyText,
       );
     }
 
@@ -75,24 +76,13 @@ async function createGitHubPR(
   branch: string,
   baseBranch: string,
   title: string,
-  body: string
+  body: string,
 ): Promise<string | null> {
   return new Promise((resolve) => {
     const proc = spawn(
       "gh",
-      [
-        "pr",
-        "create",
-        "--title",
-        title,
-        "--body",
-        body,
-        "--base",
-        baseBranch,
-        "--head",
-        branch,
-      ],
-      { cwd: repoPath }
+      ["pr", "create", "--title", title, "--body", body, "--base", baseBranch, "--head", branch],
+      { cwd: repoPath },
     );
 
     let stdout = "";

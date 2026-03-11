@@ -76,10 +76,10 @@
   --primary: oklch(0.795 0.16 70);
   --primary-foreground: oklch(0.16 0.01 70);
 
-  --secondary: oklch(0.20 0.008 260);
+  --secondary: oklch(0.2 0.008 260);
   --secondary-foreground: oklch(0.88 0.005 260);
-  --muted: oklch(0.20 0.008 260);
-  --muted-foreground: oklch(0.60 0.01 260);
+  --muted: oklch(0.2 0.008 260);
+  --muted-foreground: oklch(0.6 0.01 260);
   --accent: oklch(0.22 0.01 260);
   --accent-foreground: oklch(0.93 0.005 260);
   --destructive: oklch(0.65 0.2 25);
@@ -89,10 +89,10 @@
 
   /* Charts — warm amber spectrum */
   --chart-1: oklch(0.795 0.16 70);
-  --chart-2: oklch(0.70 0.14 55);
-  --chart-3: oklch(0.60 0.12 40);
+  --chart-2: oklch(0.7 0.14 55);
+  --chart-3: oklch(0.6 0.12 40);
   --chart-4: oklch(0.55 0.18 30);
-  --chart-5: oklch(0.50 0.10 260);
+  --chart-5: oklch(0.5 0.1 260);
 
   --radius: 0.5rem;
 
@@ -111,8 +111,8 @@
   --diff-add-line: oklch(0.17 0.03 145);
   --diff-del-line: oklch(0.17 0.03 25);
   /* Word-level: strong highlight for changed tokens within a line */
-  --diff-add-bg: oklch(0.30 0.10 145);
-  --diff-del-bg: oklch(0.30 0.10 25);
+  --diff-add-bg: oklch(0.3 0.1 145);
+  --diff-del-bg: oklch(0.3 0.1 25);
   /* Text color for changed lines */
   --diff-add-fg: oklch(0.78 0.16 145);
   --diff-del-fg: oklch(0.78 0.16 25);
@@ -133,22 +133,22 @@
   --primary: oklch(0.65 0.18 65);
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.95 0.003 260);
-  --secondary-foreground: oklch(0.20 0.008 260);
+  --secondary-foreground: oklch(0.2 0.008 260);
   --muted: oklch(0.96 0.003 260);
-  --muted-foreground: oklch(0.50 0.01 260);
+  --muted-foreground: oklch(0.5 0.01 260);
   --accent: oklch(0.96 0.003 260);
-  --accent-foreground: oklch(0.20 0.008 260);
+  --accent-foreground: oklch(0.2 0.008 260);
   --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.90 0.003 260);
-  --input: oklch(0.90 0.003 260);
+  --border: oklch(0.9 0.003 260);
+  --input: oklch(0.9 0.003 260);
   --ring: oklch(0.65 0.18 65);
 
   --diff-add-line: oklch(0.95 0.03 145);
   --diff-del-line: oklch(0.95 0.03 25);
-  --diff-add-bg: oklch(0.82 0.10 145);
-  --diff-del-bg: oklch(0.82 0.10 25);
+  --diff-add-bg: oklch(0.82 0.1 145);
+  --diff-del-bg: oklch(0.82 0.1 25);
   --diff-add-fg: oklch(0.35 0.12 145);
-  --diff-del-fg: oklch(0.40 0.15 25);
+  --diff-del-fg: oklch(0.4 0.15 25);
   --diff-hunk-bg: oklch(0.95 0.02 260);
   --diff-gutter: oklch(0.65 0.005 260);
   --diff-gutter-active: oklch(0.65 0.18 65);
@@ -201,7 +201,7 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: oklch(0.30 0.008 260);
+    background: oklch(0.3 0.008 260);
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
@@ -211,6 +211,6 @@
   /* Custom scrollbar — Firefox */
   * {
     scrollbar-width: thin;
-    scrollbar-color: oklch(0.30 0.008 260) transparent;
+    scrollbar-color: oklch(0.3 0.008 260) transparent;
   }
 }

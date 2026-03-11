@@ -11,17 +11,9 @@ import { ReviewHeader } from "@/components/review/ReviewHeader";
 import { ReviewActions } from "@/components/review/ReviewActions";
 import { FileTree } from "@/components/diff-viewer/FileTree";
 import { DiffViewer } from "@/components/diff-viewer/DiffViewer";
-import type {
-  ReviewSession,
-  ParsedDiff,
-  DiffStats,
-} from "@/types";
+import type { ReviewSession, ParsedDiff, DiffStats } from "@/types";
 
-export default function ReviewPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const fileRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
@@ -114,11 +106,7 @@ export default function ReviewPage({
     function handleKeyDown(e: KeyboardEvent) {
       // Ignore when focus is in a text input, textarea, or contenteditable
       const tag = (e.target as HTMLElement)?.tagName;
-      if (
-        tag === "INPUT" ||
-        tag === "TEXTAREA" ||
-        (e.target as HTMLElement)?.isContentEditable
-      ) {
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) {
         return;
       }
       // Ignore when any modifier is held (avoid conflicting with browser/OS shortcuts)
@@ -131,9 +119,7 @@ export default function ReviewPage({
         case "j": {
           // Next file
           if (filePaths.length === 0) return;
-          const currentIdx = activeFileRef.current
-            ? filePaths.indexOf(activeFileRef.current)
-            : -1;
+          const currentIdx = activeFileRef.current ? filePaths.indexOf(activeFileRef.current) : -1;
           const nextIdx = Math.min(currentIdx + 1, filePaths.length - 1);
           handleFileSelect(filePaths[nextIdx]);
           e.preventDefault();
@@ -142,9 +128,7 @@ export default function ReviewPage({
         case "k": {
           // Previous file
           if (filePaths.length === 0) return;
-          const currentIdx = activeFileRef.current
-            ? filePaths.indexOf(activeFileRef.current)
-            : 0;
+          const currentIdx = activeFileRef.current ? filePaths.indexOf(activeFileRef.current) : 0;
           const prevIdx = Math.max(currentIdx - 1, 0);
           handleFileSelect(filePaths[prevIdx]);
           e.preventDefault();
@@ -174,7 +158,7 @@ export default function ReviewPage({
     body: string,
     side: "left" | "right",
     startLine?: number,
-    endLine?: number
+    endLine?: number,
   ) {
     try {
       const res = await fetch(`/api/reviews/${id}/threads`, {
@@ -336,8 +320,7 @@ export default function ReviewPage({
     }
   }
 
-  const openThreadCount =
-    session?.threads.filter((t) => t.status === "open").length ?? 0;
+  const openThreadCount = session?.threads.filter((t) => t.status === "open").length ?? 0;
   const totalThreadCount = session?.threads.length ?? 0;
 
   // Loading state — skeleton layout matching the real page structure
@@ -384,9 +367,7 @@ export default function ReviewPage({
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-center">
           <AlertCircleIcon className="size-8 text-destructive" />
-          <p className="text-sm text-muted-foreground">
-            {error || "Session not found"}
-          </p>
+          <p className="text-sm text-muted-foreground">{error || "Session not found"}</p>
           <Button variant="outline" onClick={() => router.push("/")}>
             Back to Dashboard
           </Button>
@@ -406,7 +387,9 @@ export default function ReviewPage({
         <aside
           className={cn(
             "border-r border-border/30 bg-card/30 shrink-0 flex flex-col transition-all duration-200 overflow-hidden",
-            sidebarOpen ? "w-64 max-md:absolute max-md:inset-y-14 max-md:left-0 max-md:z-30 max-md:bg-background max-md:shadow-xl" : "w-0"
+            sidebarOpen
+              ? "w-64 max-md:absolute max-md:inset-y-14 max-md:left-0 max-md:z-30 max-md:bg-background max-md:shadow-xl"
+              : "w-0",
           )}
         >
           {sidebarOpen && (
@@ -444,13 +427,11 @@ export default function ReviewPage({
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center px-4">
               <FileIcon className="size-10 text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground text-sm font-medium mb-1">
-                No changes found
-              </p>
+              <p className="text-muted-foreground text-sm font-medium mb-1">No changes found</p>
               <p className="text-muted-foreground/60 text-xs max-w-xs">
-                The branch <span className="font-mono">{session.branch}</span> has no
-                diff against <span className="font-mono">{session.baseBranch}</span>.
-                Make sure the branches have diverged.
+                The branch <span className="font-mono">{session.branch}</span> has no diff against{" "}
+                <span className="font-mono">{session.baseBranch}</span>. Make sure the branches have
+                diverged.
               </p>
             </div>
           )}

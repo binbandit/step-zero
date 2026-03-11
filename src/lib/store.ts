@@ -79,7 +79,7 @@ export function createSession(
   repoPath: string,
   branch: string,
   baseBranch: string = "main",
-  aiTool?: string
+  aiTool?: string,
 ): ReviewSession {
   const db = getDb(repoPath);
   const id = uuidv4();
@@ -87,7 +87,7 @@ export function createSession(
 
   db.prepare(
     `INSERT INTO review_sessions (id, repo_path, branch, base_branch, status, ai_tool, created_at, updated_at)
-     VALUES (?, ?, ?, ?, 'in_review', ?, ?, ?)`
+     VALUES (?, ?, ?, ?, 'in_review', ?, ?, ?)`,
   ).run(id, repoPath, branch, baseBranch, aiTool ?? null, now, now);
 
   return {
@@ -107,9 +107,9 @@ export function createSession(
 export function getSession(id: string, repoPath?: string): ReviewSession | null {
   const db = getDb(repoPath);
 
-  const row = db.prepare("SELECT * FROM review_sessions WHERE id = ?").get(id) as
-    | ReviewSessionRow
-    | null;
+  const row = db
+    .prepare("SELECT * FROM review_sessions WHERE id = ?")
+    .get(id) as ReviewSessionRow | null;
 
   if (!row) return null;
 
@@ -170,14 +170,10 @@ export function listSessions(repoPath?: string): ReviewSession[] {
   });
 }
 
-export function updateSessionStatus(
-  id: string,
-  status: SessionStatus,
-  repoPath?: string
-): void {
+export function updateSessionStatus(id: string, status: SessionStatus, repoPath?: string): void {
   const db = getDb(repoPath);
   db.prepare(
-    "UPDATE review_sessions SET status = ?, updated_at = datetime('now') WHERE id = ?"
+    "UPDATE review_sessions SET status = ?, updated_at = datetime('now') WHERE id = ?",
   ).run(status, id);
 }
 
@@ -194,29 +190,25 @@ export function createRound(
   sessionId: string,
   commitShaStart: string,
   commitShaEnd: string,
-  repoPath?: string
+  repoPath?: string,
 ): ReviewRound {
   const db = getDb(repoPath);
   const id = uuidv4();
 
   // Get next round number
   const last = db
-    .prepare(
-      "SELECT MAX(round_number) as max_round FROM review_rounds WHERE session_id = ?"
-    )
+    .prepare("SELECT MAX(round_number) as max_round FROM review_rounds WHERE session_id = ?")
     .get(sessionId) as { max_round: number | null } | null;
 
   const roundNumber = (last?.max_round ?? 0) + 1;
 
   db.prepare(
     `INSERT INTO review_rounds (id, session_id, round_number, commit_sha_start, commit_sha_end)
-     VALUES (?, ?, ?, ?, ?)`
+     VALUES (?, ?, ?, ?, ?)`,
   ).run(id, sessionId, roundNumber, commitShaStart, commitShaEnd);
 
   // Touch session updated_at
-  db.prepare(
-    "UPDATE review_sessions SET updated_at = datetime('now') WHERE id = ?"
-  ).run(sessionId);
+  db.prepare("UPDATE review_sessions SET updated_at = datetime('now') WHERE id = ?").run(sessionId);
 
   return {
     id,
@@ -239,7 +231,7 @@ export function createThread(
   side: DiffSide = "right",
   repoPath?: string,
   startLine?: number,
-  endLine?: number
+  endLine?: number,
 ): Thread {
   const db = getDb(repoPath);
   const id = uuidv4();
@@ -248,13 +240,11 @@ export function createThread(
 
   db.prepare(
     `INSERT INTO threads (id, session_id, file_path, line_number, start_line, end_line, side)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
   ).run(id, sessionId, filePath, lineNumber, start, end, side);
 
   // Touch session
-  db.prepare(
-    "UPDATE review_sessions SET updated_at = datetime('now') WHERE id = ?"
-  ).run(sessionId);
+  db.prepare("UPDATE review_sessions SET updated_at = datetime('now') WHERE id = ?").run(sessionId);
 
   return {
     id,
@@ -273,7 +263,7 @@ export function createThread(
 export function updateThreadStatus(
   threadId: string,
   status: "open" | "resolved",
-  repoPath?: string
+  repoPath?: string,
 ): void {
   const db = getDb(repoPath);
   db.prepare("UPDATE threads SET status = ? WHERE id = ?").run(status, threadId);
@@ -289,20 +279,18 @@ export function addComment(
   body: string,
   author: CommentAuthor = "user",
   roundId?: string,
-  repoPath?: string
+  repoPath?: string,
 ): Comment {
   const db = getDb(repoPath);
   const id = uuidv4();
 
   db.prepare(
     `INSERT INTO comments (id, thread_id, session_id, round_id, body, author)
-     VALUES (?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, ?, ?, ?, ?)`,
   ).run(id, threadId, sessionId, roundId ?? null, body, author);
 
   // Touch session
-  db.prepare(
-    "UPDATE review_sessions SET updated_at = datetime('now') WHERE id = ?"
-  ).run(sessionId);
+  db.prepare("UPDATE review_sessions SET updated_at = datetime('now') WHERE id = ?").run(sessionId);
 
   return {
     id,
@@ -321,31 +309,28 @@ export function getComment(commentId: string, repoPath?: string): Comment | null
   return row ? mapComment(row) : null;
 }
 
-export function updateComment(
-  commentId: string,
-  body: string,
-  repoPath?: string
-): boolean {
+export function updateComment(commentId: string, body: string, repoPath?: string): boolean {
   const db = getDb(repoPath);
   const result = db.prepare("UPDATE comments SET body = ? WHERE id = ?").run(body, commentId);
   return result.changes > 0;
 }
 
-export function deleteComment(
-  commentId: string,
-  repoPath?: string
-): boolean {
+export function deleteComment(commentId: string, repoPath?: string): boolean {
   const db = getDb(repoPath);
 
   // Get thread_id before deleting so we can check for orphans
-  const comment = db.prepare("SELECT thread_id FROM comments WHERE id = ?").get(commentId) as { thread_id: string } | null;
+  const comment = db.prepare("SELECT thread_id FROM comments WHERE id = ?").get(commentId) as {
+    thread_id: string;
+  } | null;
   if (!comment) return false;
 
   const result = db.prepare("DELETE FROM comments WHERE id = ?").run(commentId);
 
   // Clean up orphaned thread if no comments remain
   if (result.changes > 0) {
-    const remaining = db.prepare("SELECT COUNT(*) as count FROM comments WHERE thread_id = ?").get(comment.thread_id) as { count: number };
+    const remaining = db
+      .prepare("SELECT COUNT(*) as count FROM comments WHERE thread_id = ?")
+      .get(comment.thread_id) as { count: number };
     if (remaining.count === 0) {
       db.prepare("DELETE FROM threads WHERE id = ?").run(comment.thread_id);
     }
@@ -360,15 +345,13 @@ export function deleteComment(
 
 export function getConfig(key: string, repoPath?: string): string | null {
   const db = getDb(repoPath);
-  const row = db.prepare("SELECT value FROM config WHERE key = ?").get(key) as
-    | { value: string }
-    | null;
+  const row = db.prepare("SELECT value FROM config WHERE key = ?").get(key) as {
+    value: string;
+  } | null;
   return row?.value ?? null;
 }
 
 export function setConfig(key: string, value: string, repoPath?: string): void {
   const db = getDb(repoPath);
-  db.prepare(
-    "INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)"
-  ).run(key, value);
+  db.prepare("INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)").run(key, value);
 }

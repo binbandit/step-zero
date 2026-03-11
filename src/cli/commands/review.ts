@@ -56,9 +56,7 @@ export const reviewCommand = new Command("review")
     const baseBranch = options.base;
 
     console.log();
-    console.log(
-      `\x1b[33m◆\x1b[0m \x1b[1mStep Zero\x1b[0m — Starting review`
-    );
+    console.log(`\x1b[33m◆\x1b[0m \x1b[1mStep Zero\x1b[0m — Starting review`);
     console.log();
     console.log(`  Branch:  \x1b[36m${branch}\x1b[0m`);
     console.log(`  Base:    \x1b[90m${baseBranch}\x1b[0m`);
@@ -67,10 +65,7 @@ export const reviewCommand = new Command("review")
 
     // Check for existing session on this branch
     const existing = listSessions(repoPath).find(
-      (s) =>
-        s.branch === branch &&
-        s.baseBranch === baseBranch &&
-        s.status !== "approved"
+      (s) => s.branch === branch && s.baseBranch === baseBranch && s.status !== "approved",
     );
 
     let sessionId: string;
@@ -78,7 +73,7 @@ export const reviewCommand = new Command("review")
     if (existing) {
       sessionId = existing.id;
       console.log(
-        `  \x1b[90mResuming existing session\x1b[0m \x1b[33m${sessionId.slice(0, 8)}\x1b[0m`
+        `  \x1b[90mResuming existing session\x1b[0m \x1b[33m${sessionId.slice(0, 8)}\x1b[0m`,
       );
     } else {
       // Create new session
@@ -93,9 +88,7 @@ export const reviewCommand = new Command("review")
         // Non-fatal
       }
 
-      console.log(
-        `  \x1b[32m✓\x1b[0m Created session \x1b[33m${sessionId.slice(0, 8)}\x1b[0m`
-      );
+      console.log(`  \x1b[32m✓\x1b[0m Created session \x1b[33m${sessionId.slice(0, 8)}\x1b[0m`);
     }
 
     console.log();

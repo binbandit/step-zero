@@ -11,10 +11,7 @@ import type { ReviewFeedback } from "@/types";
  * POST /api/reviews/[id]/dispatch — Dispatch unresolved review comments to AI
  * Body: { tool?: string, customCommand?: string }
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: sessionId } = await params;
     const body = await request.json();
@@ -34,10 +31,7 @@ export async function POST(
     const openThreads = session.threads.filter((t) => t.status === "open");
 
     if (openThreads.length === 0) {
-      return NextResponse.json(
-        { error: "No open threads to dispatch" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No open threads to dispatch" }, { status: 400 });
     }
 
     // Get the current diff for code context
@@ -54,7 +48,7 @@ export async function POST(
     const feedback: ReviewFeedback = {
       threads: openThreads.map((thread) => {
         const file = parsed.files.find(
-          (f) => f.newPath === thread.filePath || f.oldPath === thread.filePath
+          (f) => f.newPath === thread.filePath || f.oldPath === thread.filePath,
         );
         const rangeLabel =
           thread.startLine !== thread.endLine
@@ -86,12 +80,7 @@ export async function POST(
 
     // Dispatch to AI tool
     const aiTool = tool || session.aiTool || "claude";
-    const result = await dispatchToAI(
-      feedback,
-      session.repoPath,
-      aiTool,
-      customCommand
-    );
+    const result = await dispatchToAI(feedback, session.repoPath, aiTool, customCommand);
 
     // Record post-dispatch SHA
     let postSha: string;

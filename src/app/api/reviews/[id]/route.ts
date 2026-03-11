@@ -5,10 +5,7 @@ import type { SessionStatus } from "@/types";
 /**
  * GET /api/reviews/[id] — Get session details with rounds, threads, comments
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const repoPath = request.nextUrl.searchParams.get("repoPath") || undefined;
@@ -29,10 +26,7 @@ export async function GET(
  * PATCH /api/reviews/[id] — Update session status
  * Body: { status }
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();
@@ -58,7 +52,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;

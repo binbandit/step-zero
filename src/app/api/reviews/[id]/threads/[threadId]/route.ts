@@ -8,7 +8,7 @@ import type { ThreadStatus } from "@/types";
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; threadId: string }> }
+  { params }: { params: Promise<{ id: string; threadId: string }> },
 ) {
   try {
     const { threadId } = await params;

@@ -29,10 +29,7 @@ export function parseDiff(rawDiff: string): ParsedDiff {
   return { files, stats };
 }
 
-function parseFile(
-  lines: string[],
-  startIndex: number
-): { diffFile: DiffFile; nextIndex: number } {
+function parseFile(lines: string[], startIndex: number): { diffFile: DiffFile; nextIndex: number } {
   let i = startIndex;
 
   // Parse "diff --git a/path b/path"
@@ -111,14 +108,12 @@ function parseFile(
 
 function parseHunk(
   lines: string[],
-  startIndex: number
+  startIndex: number,
 ): { hunk: DiffHunk; additions: number; deletions: number; nextIndex: number } {
   const headerLine = lines[startIndex];
 
   // Parse @@ -oldStart,oldCount +newStart,newCount @@ optional context
-  const hunkMatch = headerLine.match(
-    /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(.*)$/
-  );
+  const hunkMatch = headerLine.match(/^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(.*)$/);
 
   const oldStart = hunkMatch ? parseInt(hunkMatch[1], 10) : 0;
   const oldCount = hunkMatch ? parseInt(hunkMatch[2] ?? "1", 10) : 0;
@@ -202,7 +197,7 @@ function parseHunk(
 export function extractCodeContext(
   file: DiffFile,
   lineNumber: number,
-  contextLines: number = 5
+  contextLines: number = 5,
 ): string {
   const allLines: { num: number; content: string; type: string }[] = [];
 

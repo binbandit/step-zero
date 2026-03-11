@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import {
   CheckCircle2Icon,
   CircleDotIcon,
@@ -17,11 +17,7 @@ import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn, timeAgo } from "@/lib/utils";
 import type { Thread, Comment } from "@/types";
 
@@ -113,8 +109,14 @@ function CommentBubble({
 }) {
   const isAI = comment.author === "ai";
   const canModify = !isAI && onEdit && onDelete;
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(comment.body);
+
+  useEffect(() => {
+    if (!editing) return;
+    editTextareaRef.current?.focus();
+  }, [editing]);
 
   function handleSaveEdit() {
     if (!editText.trim()) return;
@@ -145,26 +147,17 @@ function CommentBubble({
         <AvatarFallback
           className={cn(
             "text-[10px] font-bold",
-            isAI
-              ? "bg-violet-500/15 text-violet-400"
-              : "bg-primary/15 text-primary"
+            isAI ? "bg-violet-500/15 text-violet-400" : "bg-primary/15 text-primary",
           )}
         >
-          {isAI ? (
-            <BotIcon className="size-3" />
-          ) : (
-            <UserIcon className="size-3" />
-          )}
+          {isAI ? <BotIcon className="size-3" /> : <UserIcon className="size-3" />}
         </AvatarFallback>
       </Avatar>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span
-            className={cn(
-              "text-[11px] font-semibold",
-              isAI ? "text-violet-400" : "text-primary"
-            )}
+            className={cn("text-[11px] font-semibold", isAI ? "text-violet-400" : "text-primary")}
           >
             {isAI ? "AI" : "You"}
           </span>
@@ -213,10 +206,10 @@ function CommentBubble({
         {editing ? (
           <div>
             <Textarea
+              ref={editTextareaRef}
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
               className="min-h-[40px] text-[13px] bg-transparent border border-border/40 shadow-none resize-none focus-visible:ring-1 focus-visible:ring-ring/50 p-2 rounded-md"
-              autoFocus
               onKeyDown={handleEditKeyDown}
             />
             <div className="flex items-center justify-end gap-1.5 mt-1.5">
@@ -263,15 +256,27 @@ export function CommentThread({
   onCancelNew,
   onSubmitNew,
 }: CommentThreadProps) {
+  const newTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const replyTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [replyText, setReplyText] = useState("");
   const [newText, setNewText] = useState("");
   const [showReply, setShowReply] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const isResolved = thread.status === "resolved";
-  const isMac =
-    typeof navigator !== "undefined" && navigator.platform?.includes("Mac");
+  const isMac = typeof navigator !== "undefined" && navigator.platform?.includes("Mac");
   const modKey = isMac ? "\u2318" : "Ctrl";
+
+  useEffect(() => {
+    if (isNew) {
+      newTextareaRef.current?.focus();
+    }
+  }, [isNew]);
+
+  useEffect(() => {
+    if (!showReply) return;
+    replyTextareaRef.current?.focus();
+  }, [showReply]);
 
   function handleSubmitReply() {
     if (!replyText.trim() || submitting) return;
@@ -291,11 +296,7 @@ export function CommentThread({
     setTimeout(() => setSubmitting(false), 500);
   }
 
-  function handleKeyDown(
-    e: React.KeyboardEvent,
-    onSubmit: () => void,
-    onCancel?: () => void
-  ) {
+  function handleKeyDown(e: React.KeyboardEvent, onSubmit: () => void, onCancel?: () => void) {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       onSubmit();
@@ -322,14 +323,12 @@ export function CommentThread({
         </div>
         <div className="p-3 pt-2">
           <Textarea
+            ref={newTextareaRef}
             placeholder="Leave a comment..."
             value={newText}
             onChange={(e) => setNewText(e.target.value)}
             className="min-h-[60px] text-[13px] bg-transparent border-none shadow-none resize-none focus-visible:ring-0 p-0"
-            autoFocus
-            onKeyDown={(e) =>
-              handleKeyDown(e, handleSubmitNew, onCancelNew)
-            }
+            onKeyDown={(e) => handleKeyDown(e, handleSubmitNew, onCancelNew)}
           />
         </div>
         <div className="flex items-center justify-between px-3 pb-3">
@@ -337,12 +336,7 @@ export function CommentThread({
             {modKey}+Enter to submit &middot; Esc to cancel
           </span>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={onCancelNew}
-            >
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onCancelNew}>
               Cancel
             </Button>
             <Button
@@ -364,9 +358,7 @@ export function CommentThread({
     <div
       className={cn(
         "mx-4 my-2 rounded-lg border bg-card/80 backdrop-blur-sm overflow-hidden transition-all duration-200",
-        isResolved
-          ? "border-border/30 opacity-60 hover:opacity-100"
-          : "border-border/60"
+        isResolved ? "border-border/30 opacity-60 hover:opacity-100" : "border-border/60",
       )}
     >
       {/* Comments */}
@@ -401,9 +393,7 @@ export function CommentThread({
                 <CheckCircle2Icon className="size-3.5 text-emerald-400" />
               )}
             </TooltipTrigger>
-            <TooltipContent>
-              {isResolved ? "Unresolve" : "Resolve"}
-            </TooltipContent>
+            <TooltipContent>{isResolved ? "Unresolve" : "Resolve"}</TooltipContent>
           </Tooltip>
         </div>
 
@@ -423,11 +413,11 @@ export function CommentThread({
       {showReply && !isResolved && (
         <div className="border-t border-border/30 p-3">
           <Textarea
+            ref={replyTextareaRef}
             placeholder="Reply to this thread..."
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
             className="min-h-[48px] text-[13px] bg-transparent border-none shadow-none resize-none focus-visible:ring-0 p-0 mb-2"
-            autoFocus
             onKeyDown={(e) =>
               handleKeyDown(e, handleSubmitReply, () => {
                 setShowReply(false);

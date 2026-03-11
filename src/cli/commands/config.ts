@@ -12,9 +12,7 @@ export const configCommand = new Command("config")
     const repoPath = path.resolve(options.repo);
 
     console.log();
-    console.log(
-      `\x1b[33m◆\x1b[0m \x1b[1mStep Zero\x1b[0m — Configuration`
-    );
+    console.log(`\x1b[33m◆\x1b[0m \x1b[1mStep Zero\x1b[0m — Configuration`);
     console.log();
 
     // Set values if provided
@@ -22,9 +20,7 @@ export const configCommand = new Command("config")
 
     if (options.tool) {
       if (!["claude", "codex", "custom"].includes(options.tool)) {
-        console.error(
-          `  \x1b[31mError:\x1b[0m Invalid tool. Use: claude, codex, custom`
-        );
+        console.error(`  \x1b[31mError:\x1b[0m Invalid tool. Use: claude, codex, custom`);
         process.exit(1);
       }
       setConfig("ai_tool", options.tool, repoPath);
@@ -34,17 +30,13 @@ export const configCommand = new Command("config")
 
     if (options.command) {
       setConfig("custom_command", options.command, repoPath);
-      console.log(
-        `  \x1b[32m✓\x1b[0m Custom command set to \x1b[36m${options.command}\x1b[0m`
-      );
+      console.log(`  \x1b[32m✓\x1b[0m Custom command set to \x1b[36m${options.command}\x1b[0m`);
       changed = true;
     }
 
     if (options.base) {
       setConfig("default_base_branch", options.base, repoPath);
-      console.log(
-        `  \x1b[32m✓\x1b[0m Default base branch set to \x1b[36m${options.base}\x1b[0m`
-      );
+      console.log(`  \x1b[32m✓\x1b[0m Default base branch set to \x1b[36m${options.base}\x1b[0m`);
       changed = true;
     }
 

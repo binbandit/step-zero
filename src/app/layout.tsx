@@ -18,8 +18,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Step Zero — AI Code Review",
-  description:
-    "Pre-PR review layer for AI-generated code. Review before the real PR.",
+  description: "Pre-PR review layer for AI-generated code. Review before the real PR.",
 };
 
 export default function RootLayout({
@@ -41,12 +40,7 @@ export default function RootLayout({
         </a>
         <TooltipProvider>
           {children}
-          <Toaster
-            position="bottom-right"
-            closeButton
-            richColors
-            duration={4000}
-          />
+          <Toaster position="bottom-right" closeButton richColors duration={4000} />
         </TooltipProvider>
       </body>
     </html>

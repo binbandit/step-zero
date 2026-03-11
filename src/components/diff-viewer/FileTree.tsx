@@ -107,10 +107,7 @@ export function FileTree({
   }, [files, filter]);
 
   const grouped = useMemo(() => groupByDirectory(filteredFiles), [filteredFiles]);
-  const dirs = useMemo(
-    () => Array.from(grouped.keys()).sort(),
-    [grouped]
-  );
+  const dirs = useMemo(() => Array.from(grouped.keys()).sort(), [grouped]);
 
   // Stats
   const viewedCount = viewedFiles?.size ?? 0;
@@ -176,9 +173,7 @@ export function FileTree({
         {onToggleViewed && totalCount > 0 && (
           <div className="px-1">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] text-muted-foreground/50">
-                Reviewed
-              </span>
+              <span className="text-[10px] text-muted-foreground/50">Reviewed</span>
               <span className="text-[10px] font-mono text-muted-foreground/60">
                 {viewedCount}/{totalCount}
               </span>
@@ -191,7 +186,7 @@ export function FileTree({
                     ? "bg-emerald-500"
                     : progressPct > 0
                       ? "bg-primary"
-                      : "bg-transparent"
+                      : "bg-transparent",
                 )}
                 style={{ width: `${progressPct}%` }}
               />
@@ -256,7 +251,7 @@ export function FileTree({
                     <ChevronRightIcon
                       className={cn(
                         "size-3 shrink-0 transition-transform duration-150 text-muted-foreground/40",
-                        !isCollapsed && "rotate-90"
+                        !isCollapsed && "rotate-90",
                       )}
                     />
                     {isCollapsed ? (
@@ -264,9 +259,7 @@ export function FileTree({
                     ) : (
                       <FolderOpenIcon className="size-3 shrink-0 text-primary/50" />
                     )}
-                    <span className="font-mono truncate text-left flex-1">
-                      {dir}/
-                    </span>
+                    <span className="font-mono truncate text-left flex-1">{dir}/</span>
                     <span className="flex items-center gap-1.5 text-[9px] shrink-0 opacity-0 group-hover/dir:opacity-100 transition-opacity">
                       {dirAdditions > 0 && (
                         <span className="text-diff-add-fg/60 font-mono">+{dirAdditions}</span>
@@ -297,7 +290,7 @@ export function FileTree({
                             "flex items-center w-full rounded-md transition-all duration-100 group/file",
                             isActive
                               ? "bg-primary/12 text-foreground"
-                              : "text-muted-foreground/80 hover:bg-accent/40 hover:text-foreground"
+                              : "text-muted-foreground/80 hover:bg-accent/40 hover:text-foreground",
                           )}
                         >
                           {/* Viewed toggle */}
@@ -316,11 +309,15 @@ export function FileTree({
                                   "size-3 rounded-[3px] border transition-colors",
                                   isViewed
                                     ? "bg-emerald-500 border-emerald-500"
-                                    : "border-muted-foreground/25 hover:border-muted-foreground/50"
+                                    : "border-muted-foreground/25 hover:border-muted-foreground/50",
                                 )}
                               >
                                 {isViewed && (
-                                  <svg viewBox="0 0 12 12" className="size-3 text-white" aria-hidden="true">
+                                  <svg
+                                    viewBox="0 0 12 12"
+                                    className="size-3 text-white"
+                                    aria-hidden="true"
+                                  >
                                     <path
                                       d="M3 6l2 2 4-4"
                                       fill="none"
@@ -345,7 +342,9 @@ export function FileTree({
                             <span
                               className={cn(
                                 "text-[12px] font-mono truncate flex-1 text-left",
-                                isViewed && !isActive && "text-muted-foreground/40 line-through decoration-muted-foreground/20"
+                                isViewed &&
+                                  !isActive &&
+                                  "text-muted-foreground/40 line-through decoration-muted-foreground/20",
                               )}
                             >
                               {getFileName(filePath)}

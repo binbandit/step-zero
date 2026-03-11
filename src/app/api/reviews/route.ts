@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         } catch {
           return { ...session, stats: { filesChanged: 0, additions: 0, deletions: 0 } };
         }
-      })
+      }),
     );
 
     return NextResponse.json(enriched);
@@ -39,10 +39,7 @@ export async function POST(request: NextRequest) {
     const { repoPath, branch, baseBranch = "main", aiTool } = body;
 
     if (!repoPath || !branch) {
-      return NextResponse.json(
-        { error: "repoPath and branch are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "repoPath and branch are required" }, { status: 400 });
     }
 
     const session = createSession(repoPath, branch, baseBranch, aiTool);

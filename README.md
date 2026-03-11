@@ -69,11 +69,11 @@ Step Zero sits between your AI coding tool and GitHub, giving you a structured r
 
 ## Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| `j` | Next file |
-| `k` | Previous file |
-| `s` | Split diff view |
+| Key | Action            |
+| --- | ----------------- |
+| `j` | Next file         |
+| `k` | Previous file     |
+| `s` | Split diff view   |
 | `u` | Unified diff view |
 
 Shortcuts are disabled when typing in text inputs or textareas.
@@ -95,13 +95,14 @@ step-zero config               Show current configuration
 
 Step Zero can dispatch review comments to different AI tools. Configure via the web UI or CLI:
 
-| Tool | How it works |
-|------|-------------|
-| **Claude Code** | Invokes `claude` CLI with comments as prompt + diff context |
-| **Codex** | Invokes `codex` CLI with comments as prompt + diff context |
-| **Custom** | Runs any CLI command you configure, passing comments via stdin |
+| Tool            | How it works                                                   |
+| --------------- | -------------------------------------------------------------- |
+| **Claude Code** | Invokes `claude` CLI with comments as prompt + diff context    |
+| **Codex**       | Invokes `codex` CLI with comments as prompt + diff context     |
+| **Custom**      | Runs any CLI command you configure, passing comments via stdin |
 
 The dispatch payload includes:
+
 - All unresolved comment threads
 - The surrounding diff context for each comment
 - File paths and line numbers
@@ -156,21 +157,21 @@ Existing `.itl/` data directories are still recognized automatically.
 
 ## API Routes
 
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/api/reviews` | List all review sessions |
-| POST | `/api/reviews` | Create a new review session |
-| GET | `/api/reviews/[id]` | Get review session details |
-| PATCH | `/api/reviews/[id]` | Update review session |
-| DELETE | `/api/reviews/[id]` | Delete review session |
-| GET | `/api/reviews/[id]/diff` | Get parsed diff for a review |
-| POST | `/api/reviews/[id]/comments` | Add a comment |
-| PATCH | `/api/reviews/[id]/comments/[commentId]` | Edit a comment |
-| DELETE | `/api/reviews/[id]/comments/[commentId]` | Delete a comment |
-| POST | `/api/reviews/[id]/threads` | Create a comment thread |
-| PATCH | `/api/reviews/[id]/threads/[threadId]` | Resolve/unresolve a thread |
-| POST | `/api/reviews/[id]/dispatch` | Dispatch comments to AI tool |
-| POST | `/api/reviews/[id]/approve` | Approve and optionally create PR |
+| Method | Route                                    | Description                      |
+| ------ | ---------------------------------------- | -------------------------------- |
+| GET    | `/api/reviews`                           | List all review sessions         |
+| POST   | `/api/reviews`                           | Create a new review session      |
+| GET    | `/api/reviews/[id]`                      | Get review session details       |
+| PATCH  | `/api/reviews/[id]`                      | Update review session            |
+| DELETE | `/api/reviews/[id]`                      | Delete review session            |
+| GET    | `/api/reviews/[id]/diff`                 | Get parsed diff for a review     |
+| POST   | `/api/reviews/[id]/comments`             | Add a comment                    |
+| PATCH  | `/api/reviews/[id]/comments/[commentId]` | Edit a comment                   |
+| DELETE | `/api/reviews/[id]/comments/[commentId]` | Delete a comment                 |
+| POST   | `/api/reviews/[id]/threads`              | Create a comment thread          |
+| PATCH  | `/api/reviews/[id]/threads/[threadId]`   | Resolve/unresolve a thread       |
+| POST   | `/api/reviews/[id]/dispatch`             | Dispatch comments to AI tool     |
+| POST   | `/api/reviews/[id]/approve`              | Approve and optionally create PR |
 
 ## Development
 
