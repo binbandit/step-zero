@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import {
   FilePlusIcon,
   FileMinusIcon,
@@ -98,13 +98,14 @@ export function FileTree({
 }: FileTreeProps) {
   const [collapsedDirs, setCollapsedDirs] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState("");
+  const deferredFilter = useDeferredValue(filter);
 
   // Filter files by search term
   const filteredFiles = useMemo(() => {
-    if (!filter.trim()) return files;
-    const term = filter.toLowerCase().trim();
+    if (!deferredFilter.trim()) return files;
+    const term = deferredFilter.toLowerCase().trim();
     return files.filter((f) => matchesFilter(f.newPath || f.oldPath, term));
-  }, [files, filter]);
+  }, [deferredFilter, files]);
 
   const grouped = useMemo(() => groupByDirectory(filteredFiles), [filteredFiles]);
   const dirs = useMemo(() => Array.from(grouped.keys()).sort(), [grouped]);

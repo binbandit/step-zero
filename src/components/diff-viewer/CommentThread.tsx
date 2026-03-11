@@ -246,7 +246,7 @@ function CommentBubble({
   );
 }
 
-export function CommentThread({
+export const CommentThread = memo(function CommentThread({
   thread,
   onAddComment,
   onEditComment,
@@ -456,4 +456,4 @@ export function CommentThread({
       )}
     </div>
   );
-}
+});
