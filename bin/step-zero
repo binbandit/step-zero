@@ -1,0 +1,16 @@
+#!/usr/bin/env bun
+
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Resolve the real path of this script (follows symlinks from global install)
+const __bin = fileURLToPath(import.meta.url);
+const realScript = fs.realpathSync(__bin);
+const stepZeroRoot = path.resolve(path.dirname(realScript), "..");
+
+// Expose the Step Zero project root so CLI commands can find it.
+process.env.STEP_ZERO_ROOT = stepZeroRoot;
+process.env.ITL_ROOT = stepZeroRoot;
+
+await import(path.join(stepZeroRoot, "src", "cli", "index.ts"));
