@@ -1,7 +1,8 @@
 {
-  "name": "step-zero",
+  "name": "in-the-loop",
   "version": "0.1.0",
   "bin": {
+    "in-the-loop": "./bin/in-the-loop",
     "step-zero": "./bin/step-zero"
   },
   "scripts": {
@@ -13,6 +14,7 @@
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
     "test": "bun test",
+    "in-the-loop": "bun run bin/in-the-loop",
     "step-zero": "bun run bin/step-zero"
   },
   "dependencies": {

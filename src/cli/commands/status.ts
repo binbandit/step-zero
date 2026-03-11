@@ -10,12 +10,12 @@ export const statusCommand = new Command("status")
     const sessions = listSessions(repoPath);
 
     console.log();
-    console.log(`\x1b[33m◆\x1b[0m \x1b[1mStep Zero\x1b[0m — Review Sessions`);
+    console.log(`\x1b[33m◆\x1b[0m \x1b[1mIn the Loop\x1b[0m — Review Sessions`);
     console.log();
 
     if (sessions.length === 0) {
       console.log("  \x1b[90mNo active review sessions.\x1b[0m");
-      console.log("  Run \x1b[36mstep-zero review\x1b[0m to start a new review.");
+      console.log("  Run \x1b[36min-the-loop review\x1b[0m to start a new review.");
       console.log();
       return;
     }

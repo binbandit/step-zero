@@ -1,12 +1,15 @@
 # Step Zero
 
-A local, single-user pre-PR code review tool for engineers working with AI coding assistants. Review AI-generated changes in a GitHub-like diff interface, leave line-level comments, dispatch them to AI tools for resolution, and iterate through review rounds before creating a real PR.
+Step Zero is a local, single-user pre-PR review tool for engineers working with AI coding assistants. Review AI-generated changes in a GitHub-like diff interface, leave line-level comments, dispatch them to AI tools for resolution, and iterate through review rounds before creating a real PR.
 
 ## Install
 
 ```bash
-# Clone and install dependencies
-git clone <repo-url> && cd step-zero
+# Clone the repository
+git clone https://github.com/binbandit/step-zero.git
+cd step-zero
+
+# Install dependencies
 bun install
 
 # Install the `step-zero` CLI globally
@@ -15,16 +18,29 @@ npm link
 
 Once linked, `step-zero` is available from any directory on your system.
 
+Requirements:
+
+- [Bun](https://bun.sh/) v1.0+
+- [Git](https://git-scm.com/) installed and available in `PATH`
+- [GitHub CLI](https://cli.github.com/) (`gh`) for PR creation
+- One of [Claude Code](https://claude.ai/code), [Codex](https://openai.com/codex), or a custom CLI tool for AI dispatch
+
 ## Quick Start
 
 From any git repository:
 
 ```bash
+# Optional: inspect or set repo-local defaults
+step-zero config
+
 # Start a review of the current branch vs main
 step-zero review
 
 # Review against a specific base branch
 step-zero review --base develop
+
+# Review a different branch or repository
+step-zero review feature/my-branch --repo /path/to/repo
 
 # Check status of all reviews
 step-zero status
@@ -80,26 +96,41 @@ Shortcuts are disabled when typing in text inputs or textareas.
 
 ## CLI Reference
 
-```
-step-zero review [options]     Start a new review session
-  --base <branch>        Base branch to diff against (default: main)
-  --title <title>        Review session title
+```text
+step-zero review [branch]
+  Start or resume a review session for a branch.
 
-step-zero status               List all review sessions with their status
+  Options:
+    -b, --base <branch>  Base branch to diff against (default: main)
+    -r, --repo <path>    Repository path (default: current directory)
+    -p, --port <port>    Port for the local web UI (default: 3000)
+        --no-open        Do not open the browser automatically
 
-step-zero config               Show current configuration
-  --set <key=value>      Set a configuration value
+step-zero status
+  Show review sessions for a repository.
+
+  Options:
+    -r, --repo <path>    Repository path (default: current directory)
+
+step-zero config
+  View or update repository configuration.
+
+  Options:
+    -r, --repo <path>       Repository path (default: current directory)
+        --tool <tool>       AI tool: claude, codex, or custom
+        --command <cmd>     Custom AI command template
+        --base <branch>     Stored default base branch
 ```
 
 ## AI Tool Configuration
 
-Step Zero can dispatch review comments to different AI tools. Configure via the web UI or CLI:
+Step Zero can dispatch review comments to different AI tools:
 
 | Tool            | How it works                                                   |
 | --------------- | -------------------------------------------------------------- |
-| **Claude Code** | Invokes `claude` CLI with comments as prompt + diff context    |
-| **Codex**       | Invokes `codex` CLI with comments as prompt + diff context     |
-| **Custom**      | Runs any CLI command you configure, passing comments via stdin |
+| **Claude Code** | Invokes the `claude` CLI with comments as prompt + diff context        |
+| **Codex**       | Invokes the `codex` CLI with comments as prompt + diff context         |
+| **Custom**      | Runs a command template you provide, with `{{prompt}}` and `{{repo}}` |
 
 The dispatch payload includes:
 
@@ -176,21 +207,19 @@ Existing `.itl/` data directories are still recognized automatically.
 ## Development
 
 ```bash
-# Start dev server
+# Start the local app
 bun dev
 
 # Build for production
 bun run build
 
-# Run CLI commands
+# Run linting, formatting, and tests
+bun run lint
+bun run format:check
+bun test
+
+# Run CLI commands without linking globally
 bun run step-zero review
 bun run step-zero status
 bun run step-zero config
 ```
-
-## Requirements
-
-- [Bun](https://bun.sh/) v1.0+
-- [Git](https://git-scm.com/) installed and available in PATH
-- [GitHub CLI](https://cli.github.com/) (`gh`) — required only for PR creation
-- One of: [Claude Code](https://claude.ai/code), [Codex](https://openai.com/codex), or a custom CLI tool — required only for AI dispatch

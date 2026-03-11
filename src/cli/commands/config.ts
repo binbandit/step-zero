@@ -12,7 +12,7 @@ export const configCommand = new Command("config")
     const repoPath = path.resolve(options.repo);
 
     console.log();
-    console.log(`\x1b[33m◆\x1b[0m \x1b[1mStep Zero\x1b[0m — Configuration`);
+    console.log(`\x1b[33m◆\x1b[0m \x1b[1mIn the Loop\x1b[0m — Configuration`);
     console.log();
 
     // Set values if provided

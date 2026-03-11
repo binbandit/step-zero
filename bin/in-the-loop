@@ -1,0 +1,16 @@
+#!/usr/bin/env bun
+
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Resolve the real path of this script (follows symlinks from global install).
+const __bin = fileURLToPath(import.meta.url);
+const realScript = fs.realpathSync(__bin);
+const inTheLoopRoot = path.resolve(path.dirname(realScript), "..");
+
+// Expose the project root so CLI commands can find it.
+process.env.ITL_ROOT = inTheLoopRoot;
+process.env.STEP_ZERO_ROOT = inTheLoopRoot;
+
+await import(path.join(inTheLoopRoot, "src", "cli", "index.ts"));

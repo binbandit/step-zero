@@ -8,8 +8,8 @@ import { configCommand } from "./commands/config";
 const program = new Command();
 
 program
-  .name("step-zero")
-  .description("Step Zero — Pre-PR review layer for AI-generated code")
+  .name("in-the-loop")
+  .description("In the Loop — Pre-PR review layer for AI-generated code")
   .version("0.1.0");
 
 program.addCommand(reviewCommand);
