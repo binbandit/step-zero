@@ -58,7 +58,7 @@
   --color-diff-gutter-active: var(--diff-gutter-active);
 }
 
-/* 
+/*
  * In-The-Loop: Dark-first Engineering Cockpit
  * Deep charcoal with blue undertones + amber/gold accent
  */
@@ -157,6 +157,19 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  :where(
+      a[href],
+      button:not(:disabled),
+      [role="button"]:not([aria-disabled="true"]),
+      input[type="button"]:not(:disabled),
+      input[type="submit"]:not(:disabled),
+      input[type="reset"]:not(:disabled),
+      summary,
+      label[for],
+      select:not(:disabled)
+    ) {
+    cursor: pointer;
   }
   body {
     @apply bg-background text-foreground font-sans;
